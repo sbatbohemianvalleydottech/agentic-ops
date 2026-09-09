@@ -5,14 +5,13 @@ auditable for free and something has gone wrong.
 """
 
 import threading
+from datetime import datetime
 
 from ensemble.gate import Decision
 from ensemble.orchestrator import Rater, run_decision
 from ensemble.providers.fake import FakeProvider
 from ensemble.types import EvidenceBundle, EvidenceRecord, Rubric
 from ledger import Ledger
-
-from datetime import datetime
 
 BANDS = Rubric(
     name="performance",
