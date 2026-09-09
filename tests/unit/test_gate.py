@@ -1,5 +1,13 @@
+"""The three outcomes that are the whole point of the gate."""
+
 from ensemble.gate import Decision, evaluate_gate
-from ensemble.types import JudgeVerdict, RaterVerdict
+from ensemble.types import JudgeVerdict, RaterVerdict, Rubric
+
+BANDS = Rubric(
+    name="performance",
+    criteria="assess the year against the rubric",
+    scale=("not meeting", "meeting", "exceeding"),
+)
 
 
 def test_agreement_with_justified_judge_proceeds():
@@ -9,9 +17,10 @@ def test_agreement_with_justified_judge_proceeds():
     ]
     judge = JudgeVerdict(justified=True, reasoning="evidence supports the band")
 
-    result = evaluate_gate(raters, judge)
+    result = evaluate_gate(raters, judge, BANDS)
 
     assert result.decision is Decision.PROCEED
+    assert result.grade == "meeting"
 
 
 def test_raters_disagreeing_halts_even_when_judge_is_satisfied():
@@ -21,9 +30,10 @@ def test_raters_disagreeing_halts_even_when_judge_is_satisfied():
     ]
     judge = JudgeVerdict(justified=True, reasoning="either band is arguable")
 
-    result = evaluate_gate(raters, judge)
+    result = evaluate_gate(raters, judge, BANDS)
 
     assert result.decision is Decision.HALT_DISAGREEMENT
+    assert result.grade is None
 
 
 def test_unanimous_raters_still_halt_when_the_judge_rejects_the_grade():
@@ -37,6 +47,7 @@ def test_unanimous_raters_still_halt_when_the_judge_rejects_the_grade():
         reasoning="ticket volume is not in the rubric; no cited evidence for impact",
     )
 
-    result = evaluate_gate(raters, judge)
+    result = evaluate_gate(raters, judge, BANDS)
 
     assert result.decision is Decision.HALT_CORRELATED_FAILURE
+    assert result.grade is None
