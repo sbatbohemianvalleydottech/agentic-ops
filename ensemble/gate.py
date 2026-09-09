@@ -18,6 +18,9 @@ class GateResult:
     raters: tuple[RaterVerdict, ...]
     judge: JudgeVerdict | None
     grade: str | None = None
+    # Set by the orchestrator, never by the gate. Keeping id generation out of
+    # evaluate_gate is what lets it stay pure and deterministic.
+    decision_id: str | None = None
 
 
 def evaluate_gate(
