@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install
+        run: pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      # Runs unit, integration and contract suites. The contract suite is what
+      # enforces Constitution Principle IV: ensemble and ledger must import
+      # nothing from any agent package. That is a checkable property, so it gets
+      # checked here rather than trusted to review.
+      - name: Test
+        run: pytest -v
+
+      # Everything above must pass with no provider library installed. If a test
+      # needs a network call or an API key, the gate has stopped being auditable
+      # for free, which is the property worth protecting.
+      - name: Confirm the core imports with no provider library
+        run: python -c "import ensemble, ledger; print('core imports clean')"
