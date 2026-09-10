@@ -5,6 +5,8 @@ check it against the document without rerunning anything. Contested judgement
 dimensions are named as contested rather than quietly omitted.
 """
 
+from ensemble.explain import wrap
+
 from .completion import CompletionReport
 from .judgement import DimensionGrade
 from .structure import Review
@@ -52,11 +54,20 @@ def render_review(
             if grade.needs_human_review:
                 lines += [
                     f"    {grade.dimension.value}: CONTESTED, needs human review",
-                    f"      {grade.reasoning}",
+                    *wrap(grade.reasoning, indent=6),
                 ]
             else:
                 lines.append(f"    {grade.dimension.value}: {grade.grade}")
-        lines.append("")
+
+            # A grade is a claim, so Principle II applies to it. Printing the word
+            # and discarding the reasoning behind it is a claim with its evidence
+            # deleted, which is the failure this repository argues against.
+            for verdict in grade.raters:
+                lines += [
+                    f"      {verdict.rater} said {verdict.grade}",
+                    *wrap(verdict.reasoning, indent=8),
+                ]
+            lines.append("")
 
     return "\n".join(lines)
 

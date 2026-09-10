@@ -17,7 +17,7 @@ from datetime import datetime
 from ensemble.explain import explain
 from ensemble.gate import Decision
 from ensemble.orchestrator import Rater, run_decision
-from ensemble.types import EvidenceBundle, EvidenceRecord
+from ensemble.types import EvidenceBundle, EvidenceRecord, RaterVerdict
 from ensemble.types import Rubric as GateRubric
 
 from .rubric import Rubric
@@ -50,7 +50,11 @@ class DimensionGrade:
     dimension: Dimension
     grade: str | None
     needs_human_review: bool
+    # On a halt, why the gate refused. Not the raters' reasoning: that is carried
+    # separately and per model, because joining the two destroys the only place a
+    # human can see two raters reaching one grade by different arguments.
     reasoning: str
+    raters: tuple[RaterVerdict, ...] = ()
 
 
 def _evidence(rca: RCA) -> EvidenceBundle:
@@ -125,15 +129,9 @@ def assess_judgement(
 
         halted = result.decision is not Decision.PROCEED
 
-        # On a halt, why is `explain`'s job. It was built here once and in
-        # cost_agent once, and both said "assessors did not agree this grade is
-        # supported" for every halt kind, which describes correlated failure and
-        # nothing else.
-        reasoning = (
-            "; ".join(v.reasoning for v in result.raters)
-            if not halted
-            else explain(result)
-        )
+        # On a halt, why is `explain`'s job. The raters' own reasoning travels
+        # separately, per model, so it survives to the report either way.
+        reasoning = explain(result) if halted else ""
 
         grades.append(
             DimensionGrade(
@@ -143,6 +141,9 @@ def assess_judgement(
                 grade=None if halted else result.grade,
                 needs_human_review=halted,
                 reasoning=reasoning,
+                # Kept whether or not the gate acted on them. Refusing to decide
+                # on a verdict is not the same as the verdict being unfit to read.
+                raters=result.raters,
             )
         )
 

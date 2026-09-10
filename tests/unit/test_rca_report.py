@@ -4,13 +4,20 @@ The first question an audit asks about an automated judgement is what produced
 it. The ledger knows; the report is what people read.
 """
 
+from ensemble.types import RaterVerdict
 from rca_agent.judgement import DimensionGrade
 from rca_agent.report import render_review
 from rca_agent.structure import Review
-from ensemble.types import RaterVerdict
 from rca_agent.types import Dimension
 
 MODELS = ("anthropic/claude-opus-5", "gemini/gemini-3.8-flash", "anthropic/claude-sonnet-5")
+
+
+def flat(report: str) -> str:
+    """The report wraps to a terminal width, so a sentence spans lines. Text is
+    checked with whitespace normalised; that wrapping changes nothing else is
+    asserted in test_wrap.py rather than assumed here."""
+    return " ".join(report.split())
 
 GRADES = [
     DimensionGrade(
@@ -52,18 +59,19 @@ def test_a_graded_dimension_shows_why_each_rater_graded_it_that_way():
     tokens of paid-for explanation."""
     report = render_review(Review(rca_id="rca-1"), GRADED, models=MODELS)
 
-    assert "Stops at the trigger" in report
-    assert "control that should have caught this" in report
+    assert "Stops at the trigger" in flat(report)
+    assert "control that should have caught this" in flat(report)
 
 
 def test_each_reasoning_is_attributed_to_the_model_that_gave_it():
     report = render_review(Review(rca_id="rca-1"), GRADED, models=MODELS)
 
-    opus_at = report.index("anthropic/claude-opus-5", report.index("cause_not_trigger"))
-    gemini_at = report.index("gemini/gemini-3.8-flash", report.index("cause_not_trigger"))
+    text = flat(report)
+    opus_at = text.index("anthropic/claude-opus-5", text.index("cause_not_trigger"))
+    gemini_at = text.index("gemini/gemini-3.8-flash", text.index("cause_not_trigger"))
 
-    assert report.index("Stops at the trigger") > opus_at
-    assert report.index("control that should have caught this") > gemini_at
+    assert text.index("Stops at the trigger") > opus_at
+    assert text.index("control that should have caught this") > gemini_at
 
 
 def test_two_raters_agreeing_do_not_have_their_reasons_merged():
@@ -72,9 +80,9 @@ def test_two_raters_agreeing_do_not_have_their_reasons_merged():
     the strings destroys the only place a human could see it."""
     report = render_review(Review(rca_id="rca-1"), GRADED, models=MODELS)
 
-    assert "; ".join((OPUS.reasoning, GEMINI.reasoning)) not in report
-    assert OPUS.reasoning.split(".")[0] in report
-    assert GEMINI.reasoning.split(".")[0] in report
+    assert "; ".join((OPUS.reasoning, GEMINI.reasoning)) not in flat(report)
+    assert " ".join(OPUS.reasoning.split()) in flat(report)
+    assert " ".join(GEMINI.reasoning.split()) in flat(report)
 
 
 def test_a_contested_dimension_keeps_its_halt_explanation():
@@ -89,14 +97,14 @@ def test_a_contested_dimension_keeps_its_halt_explanation():
     ]
     report = render_review(Review(rca_id="rca-1"), contested, models=MODELS)
 
-    assert "Assessors disagreed" in report
-    assert "Stops at the trigger" in report
+    assert "Assessors disagreed" in flat(report)
+    assert "Stops at the trigger" in flat(report)
 
 
 def test_a_deterministic_report_claims_no_reasoning():
     report = render_review(Review(rca_id="rca-1"))
 
-    assert "Stops at the trigger" not in report
+    assert "Stops at the trigger" not in flat(report)
     assert "Judgement dimensions" not in report
 
 

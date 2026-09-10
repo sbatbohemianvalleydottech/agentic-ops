@@ -11,7 +11,27 @@ this sentence independently and both got it wrong in identical words. Fixing it
 twice would leave the mechanism that produced the bug in place.
 """
 
+import textwrap
+
 from .gate import Decision, GateResult
+
+
+def wrap(text: str, *, indent: int, width: int = 78) -> list[str]:
+    """Model prose, laid out without being rewritten.
+
+    Whitespace is normalised and nothing else is. A wrapper that quietly edited
+    what a model said would be a subtler version of the bug this module's
+    feature exists to fix: a report showing something other than the evidence it
+    claims to be showing.
+
+    Empty reasoning is rendered as explicitly empty. A model that graded without
+    explaining itself is a fact about the run, not an absence to tidy away.
+    """
+    pad = " " * indent
+    collapsed = " ".join(text.split())
+    if not collapsed:
+        return [f"{pad}(no reasoning returned)"]
+    return textwrap.wrap(collapsed, width=width, initial_indent=pad, subsequent_indent=pad)
 
 
 def _said(result: GateResult) -> str:

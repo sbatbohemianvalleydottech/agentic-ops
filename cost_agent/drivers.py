@@ -51,6 +51,9 @@ class Driver:
     savings_pct_low: Decimal = Decimal("0")
     savings_pct_high: Decimal = Decimal("0")
     confidence: str = "unrated"
+    # What each assessor said and why. Empty on the free path, which claims no
+    # rating and so must claim no reasoning either.
+    confidence_raters: tuple = ()
     what_would_change_confidence: str = ""
     confirming_question: str = ""
     # The furthest decommission date across this driver's findings. Present only

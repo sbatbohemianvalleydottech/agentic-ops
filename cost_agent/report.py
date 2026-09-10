@@ -6,6 +6,8 @@ different claims, and a reader cannot tell them apart from an absent heading.
 
 from decimal import Decimal
 
+from ensemble.explain import wrap
+
 from .drivers import Analysis, Driver
 
 
@@ -15,6 +17,22 @@ def _money(amount: Decimal) -> str:
 
 def _pct(fraction: Decimal) -> str:
     return f"{fraction * 100:.1f}%"
+
+
+def render_confidence_reasoning(verdicts) -> list[str]:
+    """Why each assessor rated it that way, kept apart per model.
+
+    Two raters returning `high` is not two raters agreeing. Whether they got
+    there by the same argument is the correlated-failure question, and joining
+    the strings is what destroyed that distinction before any report saw it.
+    """
+    lines: list[str] = []
+    for verdict in verdicts:
+        lines += [
+            f"    {verdict.rater} said {verdict.grade}",
+            *wrap(verdict.reasoning, indent=6),
+        ]
+    return lines
 
 
 def _driver_block(index: int, driver: Driver) -> list[str]:
@@ -28,6 +46,7 @@ def _driver_block(index: int, driver: Driver) -> list[str]:
         f"{_money(driver.savings_high)} "
         f"({_pct(driver.savings_pct_low)} to {_pct(driver.savings_pct_high)})",
         f"  Confidence:                 {driver.confidence}",
+        *render_confidence_reasoning(driver.confidence_raters),
         f"  What would change it:       {driver.what_would_change_confidence}",
         f"  Question needed to confirm: {driver.confirming_question}",
         f"  Explains:                   {len({f.resource_id for f in driver.findings})} "

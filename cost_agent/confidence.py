@@ -76,6 +76,7 @@ def rate_confidence(
         return replace(
             driver,
             confidence="NEEDS_REVIEW",
+            confidence_raters=result.raters,
             what_would_change_confidence=(
                 f"{driver.what_would_change_confidence} "
                 f"{explain(result)} A human should look before this driver is "
@@ -83,4 +84,7 @@ def rate_confidence(
             ),
         )
 
-    return replace(driver, confidence=result.grade)
+    # The reasoning travels with the rating. A confidence figure whose basis was
+    # dropped on the way to the report is the same unsupported claim this
+    # repository exists to argue against.
+    return replace(driver, confidence=result.grade, confidence_raters=result.raters)
