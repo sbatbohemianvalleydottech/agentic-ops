@@ -53,15 +53,60 @@ POST-INCIDENT NOTES
   the change passed review; two approvals
 """
 
-SCHEMA_HINT = """Reply with JSON only, matching this shape:
-{"rca_id": "...", "severity": "...",
- "timeline": [{"name": "detection|escalation|mitigation|resolution", "at": "ISO8601"}],
- "impact": "...", "stated_cause": "...", "contributing_factors": ["..."],
- "narrative": "...", "participants": ["..."],
- "action_items": [{"title": "...", "owner": "...", "due": "ISO8601",
-                   "tracker_ref": "...", "category": "prevent|prepare|process|comms",
-                   "state": "open", "created": "ISO8601"}],
- "closed_at": "ISO8601", "followups_exported_at": "ISO8601"}"""
+SCHEMA_HINT = (
+    "Reply with an incident review as JSON. Timestamps are ISO 8601. Timeline "
+    "moments are named detection, escalation, mitigation and resolution. Action "
+    "item categories are prevent, prepare, process or comms."
+)
+
+# A strict schema rather than a bare json_object, matching the provider adapter.
+# load_rca needs `created` on every action item, so a reply that is valid JSON but
+# the wrong shape would crash the demo rather than be reviewed by it.
+_ITEM = {
+    "type": "object",
+    "properties": {
+        "title": {"type": "string"},
+        "owner": {"type": "string"},
+        "due": {"type": "string"},
+        "tracker_ref": {"type": "string"},
+        "category": {"enum": ["prevent", "prepare", "process", "comms"]},
+        "state": {"enum": ["open", "closed"]},
+        "created": {"type": "string"},
+    },
+    "required": ["title", "owner", "due", "tracker_ref", "category", "state", "created"],
+    "additionalProperties": False,
+}
+
+RCA_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "rca_id": {"type": "string"},
+        "severity": {"type": "string"},
+        "timeline": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {"name": {"type": "string"}, "at": {"type": "string"}},
+                "required": ["name", "at"],
+                "additionalProperties": False,
+            },
+        },
+        "impact": {"type": "string"},
+        "stated_cause": {"type": "string"},
+        "contributing_factors": {"type": "array", "items": {"type": "string"}},
+        "narrative": {"type": "string"},
+        "participants": {"type": "array", "items": {"type": "string"}},
+        "action_items": {"type": "array", "items": _ITEM},
+        "closed_at": {"type": "string"},
+        "followups_exported_at": {"type": "string"},
+    },
+    "required": [
+        "rca_id", "severity", "timeline", "impact", "stated_cause",
+        "contributing_factors", "narrative", "participants", "action_items",
+        "closed_at", "followups_exported_at",
+    ],
+    "additionalProperties": False,
+}
 
 
 def main() -> int:
@@ -70,7 +115,7 @@ def main() -> int:
         return 1
 
     try:
-        from litellm import completion
+        from litellm import completion, supports_response_schema
     except ImportError:
         print('litellm not installed. Run: pip install -e ".[providers]"')
         return 1
@@ -88,7 +133,14 @@ def main() -> int:
                 ),
             }
         ],
-        response_format={"type": "json_object"},
+        response_format=(
+            {
+                "type": "json_schema",
+                "json_schema": {"name": "rca", "schema": RCA_SCHEMA, "strict": True},
+            }
+            if supports_response_schema(model=DRAFTER)
+            else {"type": "json_object"}
+        ),
     )
 
     drafted = Path(".drafted-rca.json")
