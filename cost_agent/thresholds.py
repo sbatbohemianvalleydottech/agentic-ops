@@ -15,6 +15,7 @@ class Thresholds:
     stale_after_days: int
     weekend_ratio: float
     annualisation_multiplier: Decimal
+    savings_conservatism: Decimal
     owner_tag_keys: tuple[str, ...]
 
 
@@ -36,5 +37,6 @@ def load_thresholds(path: Path | None = None) -> Thresholds:
         # Quoted in the file and parsed here, so the multiplier that scales every
         # headline figure never passes through a float.
         annualisation_multiplier=Decimal(str(raw["annualisation_multiplier"])),
+        savings_conservatism=Decimal(str(raw["savings_conservatism"])),
         owner_tag_keys=tuple(raw["owner_tag_keys"]),
     )

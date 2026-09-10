@@ -16,6 +16,7 @@ REQUIRED_KEYS = (
     "stale_after_days",
     "weekend_ratio",
     "annualisation_multiplier",
+    "savings_conservatism",
     "owner_tag_keys",
 )
 
@@ -45,6 +46,7 @@ def test_an_override_file_replaces_the_defaults(tmp_path):
                 "stale_after_days = 7",
                 "weekend_ratio = 3.0",
                 'annualisation_multiplier = "12"',
+                'savings_conservatism = "0.60"',
                 'owner_tag_keys = ["team"]',
             ]
         )

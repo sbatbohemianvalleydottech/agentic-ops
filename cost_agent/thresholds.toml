@@ -32,6 +32,12 @@ weekend_ratio = 4.0
 # figures. Quoted as a string so it parses to an exact Decimal.
 annualisation_multiplier = "12.1667"
 
+# The lower bound of every savings range is the upper bound times this. Half is
+# deliberate pessimism: the tool cannot see contracts, warm standbys or
+# compliance holds, and a range that turns out to be optimistic costs more
+# credibility than one that turns out to be cautious.
+savings_conservatism = "0.50"
+
 # A resource carrying none of these tags has no owner, which means accountability
 # went missing before the money did.
 owner_tag_keys = ["owner", "team", "cost_centre"]
