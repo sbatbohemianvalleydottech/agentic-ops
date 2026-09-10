@@ -20,7 +20,7 @@ from pathlib import Path
 
 from ledger import Ledger
 
-from .env import load_env
+from .env import load_env, setting
 from .gate import Decision
 from .orchestrator import Rater, run_decision
 from .report import format_halt_report
@@ -83,9 +83,9 @@ def main() -> int:
         print('litellm is not installed. Run: pip install -e ".[providers]"')
         return 1
 
-    rater_a = os.environ.get("RATER_A", DEFAULT_RATER_A)
-    rater_b = os.environ.get("RATER_B", DEFAULT_RATER_B)
-    judge = os.environ.get("JUDGE", DEFAULT_JUDGE)
+    rater_a = setting("RATER_A", DEFAULT_RATER_A)
+    rater_b = setting("RATER_B", DEFAULT_RATER_B)
+    judge = setting("JUDGE", DEFAULT_JUDGE)
 
     provider = LiteLLMProvider()
     ledger = Ledger(Path(".ledger/calls.jsonl"))

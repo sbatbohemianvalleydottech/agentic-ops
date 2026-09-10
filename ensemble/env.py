@@ -10,6 +10,23 @@ import os
 from pathlib import Path
 
 
+def setting(name: str, default: str) -> str:
+    """Read an optional setting, treating an empty value as absent.
+
+    `os.environ.get(name, default)` is not enough. Our loader skips empty values,
+    but litellm calls python-dotenv on import and loads the same `.env` behind
+    us, and python-dotenv does not skip them. A template line of `RATER_A=`
+    therefore arrives as `""` however careful this module is, and
+    `os.environ.get` would hand that empty string straight to a caller as a model
+    name.
+
+    That is not hypothetical. It is what made the first live run of this
+    repository fail: the model string was empty, and the vendor reported it as
+    "LLM Provider NOT provided" across twelve lines of banner.
+    """
+    return (os.environ.get(name) or "").strip() or default
+
+
 def _find_upward(start: Path) -> Path | None:
     """Look for `.env` from here up to the filesystem root, so the tools work
     when run from a subdirectory."""

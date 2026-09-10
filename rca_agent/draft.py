@@ -16,7 +16,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from ensemble.env import load_env
+from ensemble.env import load_env, setting
 from ledger import Ledger
 
 from .report import render_review
@@ -115,7 +115,7 @@ RCA_SCHEMA = {
 
 def main() -> int:
     load_env()
-    drafter = os.environ.get("DRAFTER", DEFAULT_DRAFTER)
+    drafter = setting("DRAFTER", DEFAULT_DRAFTER)
 
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("Set ANTHROPIC_API_KEY first. See the module docstring.")

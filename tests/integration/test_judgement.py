@@ -160,6 +160,33 @@ def test_a_judge_rejecting_a_unanimous_grade_also_needs_review(rca, rubric, ledg
     assert result.needs_human_review is True
 
 
+def test_a_dimension_halted_by_failure_says_so_rather_than_blaming_disagreement(
+    rca, rubric, ledger
+):
+    """The exact wrong message the first live run produced. Nobody disagreed;
+    every call errored."""
+
+    @dataclass
+    class FailingProvider:
+        def grade(self, rubric, evidence, model):
+            return Call(
+                verdict=None,
+                usage=Usage(),
+                error="BadRequestError: credit balance is too low",
+            )
+
+        def judge(self, rubric, evidence, grade, model):
+            return Call(verdict=None, usage=Usage(), error="not reached")
+
+    raters, judge = raters_for(FailingProvider())
+
+    grades = assess_judgement(rca, rubric, raters=raters, judge=judge, ledger=ledger)
+
+    reasoning = grades[0].reasoning
+    assert "credit balance is too low" in reasoning
+    assert "did not agree" not in reasoning
+
+
 def test_one_ledger_record_per_call_across_every_dimension(
     rca, rubric, ledger, ledger_path
 ):

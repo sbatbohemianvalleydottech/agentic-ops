@@ -5,7 +5,7 @@ from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
-from ensemble.env import load_env
+from ensemble.env import load_env, setting
 from ledger import Ledger
 
 from .pipeline import analyse
@@ -85,11 +85,11 @@ def main(argv: list[str] | None = None) -> int:
                 rate_confidence(
                     driver,
                     raters=[
-                        Rater(provider, os.environ.get("RATER_A", "anthropic/claude-opus-5")),
-                        Rater(provider, os.environ.get("RATER_B", "gemini/gemini-3.8-flash")),
+                        Rater(provider, setting("RATER_A", "anthropic/claude-opus-5")),
+                        Rater(provider, setting("RATER_B", "gemini/gemini-3.8-flash")),
                     ],
                     judge=Rater(
-                        provider, os.environ.get("JUDGE", "anthropic/claude-sonnet-5")
+                        provider, setting("JUDGE", "anthropic/claude-sonnet-5")
                     ),
                     ledger=ledger,
                     as_of=args.as_of,

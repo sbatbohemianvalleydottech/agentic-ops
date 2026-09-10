@@ -119,6 +119,26 @@ def test_a_dotenv_in_a_parent_directory_is_found(tmp_path, monkeypatch):
     assert os.environ["SOME_TEST_KEY"] == "found-upward"
 
 
+def test_setting_treats_an_empty_environment_value_as_absent(monkeypatch):
+    """Our loader skips empty values, but litellm calls python-dotenv on import
+    and loads the same file behind us, and python-dotenv does not. A template
+    line of `RATER_A=` therefore arrives as "" no matter how careful we are, so
+    the fix has to be at the point of use."""
+    from ensemble.env import setting
+
+    monkeypatch.setenv("SOME_TEST_KEY", "")
+    assert setting("SOME_TEST_KEY", "the-default") == "the-default"
+
+    monkeypatch.setenv("SOME_TEST_KEY", "   ")
+    assert setting("SOME_TEST_KEY", "the-default") == "the-default"
+
+    monkeypatch.setenv("SOME_TEST_KEY", "chosen")
+    assert setting("SOME_TEST_KEY", "the-default") == "chosen"
+
+    monkeypatch.delenv("SOME_TEST_KEY", raising=False)
+    assert setting("SOME_TEST_KEY", "the-default") == "the-default"
+
+
 def test_the_example_file_lists_every_variable_the_repo_reads():
     """Derived from source, not hardcoded, so adding a credential later without a
     template entry breaks the build rather than confusing somebody in six months."""

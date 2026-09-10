@@ -4,7 +4,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from ensemble.env import load_env
+from ensemble.env import load_env, setting
 from ledger import Ledger
 
 from .completion import report_completion
@@ -73,10 +73,10 @@ def main(argv: list[str] | None = None) -> int:
         provider = LiteLLMProvider()
         ledger = Ledger(Path(".ledger/calls.jsonl"))
         raters = [
-            Rater(provider, os.environ.get("RATER_A", "anthropic/claude-opus-5")),
-            Rater(provider, os.environ.get("RATER_B", "gemini/gemini-3.8-flash")),
+            Rater(provider, setting("RATER_A", "anthropic/claude-opus-5")),
+            Rater(provider, setting("RATER_B", "gemini/gemini-3.8-flash")),
         ]
-        judge = Rater(provider, os.environ.get("JUDGE", "anthropic/claude-sonnet-5"))
+        judge = Rater(provider, setting("JUDGE", "anthropic/claude-sonnet-5"))
 
         def assessor(rca):  # noqa: F811
             return assess_judgement(

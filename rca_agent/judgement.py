@@ -121,6 +121,22 @@ def assess_judgement(
         )
 
         halted = result.decision is not Decision.PROCEED
+
+        if not halted:
+            reasoning = "; ".join(v.reasoning for v in result.raters)
+        elif result.failures:
+            # Nobody disagreed. The calls failed, and saying otherwise sends the
+            # operator looking for a judgement problem that does not exist.
+            detail = "; ".join(
+                f"{f.role} {f.model} failed: {f.reason}" for f in result.failures
+            )
+            reasoning = f"assessment halted ({result.decision.value}): {detail}"
+        else:
+            reasoning = (
+                f"assessment halted ({result.decision.value}); assessors did not "
+                "agree this grade is supported"
+            )
+
         grades.append(
             DimensionGrade(
                 dimension=dimension,
@@ -128,12 +144,7 @@ def assess_judgement(
                 # fabricated agreement the gate exists to prevent.
                 grade=None if halted else result.grade,
                 needs_human_review=halted,
-                reasoning=(
-                    f"assessment halted ({result.decision.value}); assessors did not "
-                    "agree this grade is supported"
-                    if halted
-                    else "; ".join(v.reasoning for v in result.raters)
-                ),
+                reasoning=reasoning,
             )
         )
 
