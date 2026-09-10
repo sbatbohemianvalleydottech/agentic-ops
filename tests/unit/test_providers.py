@@ -70,6 +70,7 @@ class _Response:
 def test_a_pricing_failure_does_not_discard_a_good_verdict(monkeypatch):
     """A model that answers correctly but has no published price must not be
     converted into a halt. That is fabrication in the opposite direction."""
+    pytest.importorskip("litellm")
     import ensemble.providers.litellm as adapter
 
     monkeypatch.setattr(adapter, "completion", lambda **kwargs: _Response())
@@ -88,6 +89,7 @@ def test_a_pricing_failure_does_not_discard_a_good_verdict(monkeypatch):
 
 
 def test_the_workspace_header_is_sent_only_when_configured(monkeypatch):
+    pytest.importorskip("litellm")
     import ensemble.providers.litellm as adapter
 
     seen = {}
