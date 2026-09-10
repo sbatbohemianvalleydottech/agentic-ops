@@ -11,8 +11,9 @@ import pytest
 from cost_agent.classify import classify
 from cost_agent.drivers import build_analysis
 from cost_agent.inputs import Inputs, Unmatched
-from cost_agent.report import render_report
+from cost_agent.report import render_confidence_reasoning, render_report
 from cost_agent.savings import estimate_savings
+from ensemble.types import RaterVerdict
 
 
 @pytest.fixture
@@ -139,3 +140,47 @@ def test_a_single_resource_driver_is_flagged_in_the_output(report_for, make_reso
     ])
 
     assert "one resource" in report.lower()
+
+
+def test_a_rated_driver_shows_the_reasoning_behind_its_confidence():
+    """Same defect as the RCA agent's: the rating was printed and the paid-for
+    explanation behind it was dropped before it reached a report at all."""
+    verdicts = (
+        RaterVerdict(
+            rater="anthropic/claude-opus-5",
+            grade="high",
+            reasoning="Both resources are steady-state, so the utilisation figure "
+            "is not an artefact of a sampling window.",
+        ),
+        RaterVerdict(
+            rater="gemini/gemini-3.8-flash",
+            grade="high",
+            reasoning="No reserved-capacity commitment is recorded against either.",
+        ),
+    )
+
+    rendered = "\n".join(render_confidence_reasoning(verdicts))
+
+    assert "anthropic/claude-opus-5" in rendered
+    assert "gemini/gemini-3.8-flash" in rendered
+    assert "steady-state" in rendered
+    assert "reserved-capacity commitment" in rendered
+
+
+def test_two_raters_agreeing_keep_their_separate_reasons():
+    """Both said high. They did not say it for the same reason, and merging the
+    strings is what destroyed that distinction in the first place."""
+    verdicts = (
+        RaterVerdict(rater="a", grade="high", reasoning="steady state"),
+        RaterVerdict(rater="b", grade="high", reasoning="no commitment recorded"),
+    )
+
+    rendered = "\n".join(render_confidence_reasoning(verdicts))
+
+    assert "steady state" in rendered
+    assert "no commitment recorded" in rendered
+    assert "steady state; no commitment recorded" not in rendered
+
+
+def test_an_unrated_driver_claims_no_reasoning():
+    assert render_confidence_reasoning(()) == []
