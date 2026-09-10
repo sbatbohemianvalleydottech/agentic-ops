@@ -1,0 +1,66 @@
+{
+  "rca_id": "rca-detection-only",
+  "severity": "sev2",
+  "timeline": [
+    {
+      "name": "detection",
+      "at": "2026-05-19T11:40:00"
+    },
+    {
+      "name": "escalation",
+      "at": "2026-05-19T11:52:00"
+    },
+    {
+      "name": "mitigation",
+      "at": "2026-05-19T12:30:00"
+    },
+    {
+      "name": "resolution",
+      "at": "2026-05-19T13:05:00"
+    }
+  ],
+  "impact": "Search was degraded for 85 minutes. 4,100 queries returned partial results.",
+  "stated_cause": "An index rebuild ran during peak hours and saturated disk IO on the search tier.",
+  "contributing_factors": [
+    "Index rebuilds are scheduled by hand with no peak-hours guard.",
+    "Disk IO saturation on the search tier is not alerted on."
+  ],
+  "narrative": "Degradation was noticed by the support team at 11:40.",
+  "participants": [
+    "Ines Duarte"
+  ],
+  "action_items": [
+    {
+      "title": "Add an alert for disk IO saturation on search nodes",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "SRCH-77",
+      "category": "prepare",
+      "closure_evidence": "PR 4412"
+    },
+    {
+      "title": "Add a dashboard panel for index rebuild activity",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "SRCH-78",
+      "category": "prepare",
+      "closure_evidence": "PR 4412"
+    },
+    {
+      "title": "Improve monitoring coverage of the search tier",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "SRCH-79",
+      "category": "prepare",
+      "closure_evidence": "PR 4412"
+    }
+  ],
+  "closed_at": "2026-05-21T00:00:00",
+  "followups_exported_at": "2026-05-22T00:00:00"
+}

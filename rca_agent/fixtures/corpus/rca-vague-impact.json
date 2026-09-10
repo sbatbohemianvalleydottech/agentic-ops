@@ -1,0 +1,46 @@
+{
+  "rca_id": "rca-vague-impact",
+  "severity": "sev3",
+  "timeline": [
+    {
+      "name": "detection",
+      "at": "2026-07-11T08:05:00"
+    },
+    {
+      "name": "escalation",
+      "at": "2026-07-11T08:14:00"
+    },
+    {
+      "name": "mitigation",
+      "at": "2026-07-11T08:44:00"
+    },
+    {
+      "name": "resolution",
+      "at": "2026-07-11T09:10:00"
+    }
+  ],
+  "impact": "Some customers were affected for a while. The impact was limited.",
+  "stated_cause": "A cache eviction policy change increased origin load beyond provisioned capacity.",
+  "contributing_factors": [
+    "Origin capacity is provisioned against cached traffic, not raw traffic.",
+    "Cache hit rate is not alerted on."
+  ],
+  "narrative": "Elevated origin load was noticed during a routine check.",
+  "participants": [
+    "Tom Bergstrom"
+  ],
+  "action_items": [
+    {
+      "title": "Alert on cache hit rate falling below 85%",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "CDN-12",
+      "category": "prevent",
+      "closure_evidence": "PR 4412"
+    }
+  ],
+  "closed_at": "2026-07-13T00:00:00",
+  "followups_exported_at": "2026-07-14T00:00:00"
+}

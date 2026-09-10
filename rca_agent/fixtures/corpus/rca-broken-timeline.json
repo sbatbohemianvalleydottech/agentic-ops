@@ -1,0 +1,46 @@
+{
+  "rca_id": "rca-broken-timeline",
+  "severity": "sev2",
+  "timeline": [
+    {
+      "name": "detection",
+      "at": "2026-06-25T10:40:00"
+    },
+    {
+      "name": "escalation",
+      "at": "2026-06-25T10:52:00"
+    },
+    {
+      "name": "mitigation",
+      "at": "2026-06-25T10:05:00"
+    },
+    {
+      "name": "resolution",
+      "at": "2026-06-25T11:30:00"
+    }
+  ],
+  "impact": "Login was unavailable for 50 minutes. 6,700 sessions failed.",
+  "stated_cause": "A certificate rotation removed the intermediate chain, so clients could not validate the leaf.",
+  "contributing_factors": [
+    "Rotation is manual with no chain verification step.",
+    "Certificate expiry monitoring does not check chain completeness."
+  ],
+  "narrative": "An engineer restarted the edge fleet before the alert fired.",
+  "participants": [
+    "Rae Lindqvist"
+  ],
+  "action_items": [
+    {
+      "title": "Verify the full chain during rotation",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "EDGE-31",
+      "category": "prevent",
+      "closure_evidence": "PR 4412"
+    }
+  ],
+  "closed_at": "2026-06-27T00:00:00",
+  "followups_exported_at": "2026-06-28T00:00:00"
+}

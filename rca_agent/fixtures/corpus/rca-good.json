@@ -1,0 +1,77 @@
+{
+  "rca_id": "rca-good",
+  "severity": "sev2",
+  "timeline": [
+    {
+      "name": "detection",
+      "at": "2026-03-01T09:12:00"
+    },
+    {
+      "name": "escalation",
+      "at": "2026-03-01T09:20:00"
+    },
+    {
+      "name": "mitigation",
+      "at": "2026-03-01T09:48:00"
+    },
+    {
+      "name": "resolution",
+      "at": "2026-03-01T10:30:00"
+    }
+  ],
+  "impact": "412 merchants saw checkout errors for 78 minutes. 1,940 orders failed and were retried.",
+  "stated_cause": "Schema migrations acquire table locks with no timeout, so any long migration can stall the write path indefinitely.",
+  "contributing_factors": [
+    "The migration tooling has no default lock timeout, so a slow migration blocks writes rather than aborting.",
+    "The rollback initially ran against the wrong replica, extending the outage by roughly 20 minutes.",
+    "Write-path saturation had no alert, so detection came from a merchant report rather than monitoring."
+  ],
+  "narrative": "Rae Lindqvist was paged at 09:12 after a merchant report. Sam Okafor identified the held lock at 09:31 and rolled the migration back at 09:48.",
+  "participants": [
+    "Rae Lindqvist",
+    "Sam Okafor"
+  ],
+  "action_items": [
+    {
+      "title": "Set a default lock timeout of 5s on all migrations",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "PLAT-2211",
+      "category": "prevent",
+      "closure_evidence": "PR 4412"
+    },
+    {
+      "title": "Alert on write-path saturation above 80% for 2 minutes",
+      "state": "open",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "PLAT-2212",
+      "category": "prepare"
+    },
+    {
+      "title": "Add replica identity to the rollback runbook",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "PLAT-2213",
+      "category": "process",
+      "closure_evidence": "PR 4412"
+    },
+    {
+      "title": "Post the incident summary to the status page",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "PLAT-2214",
+      "category": "comms",
+      "closure_evidence": "PR 4412"
+    }
+  ],
+  "closed_at": "2026-03-03T00:00:00",
+  "followups_exported_at": "2026-03-04T00:00:00"
+}

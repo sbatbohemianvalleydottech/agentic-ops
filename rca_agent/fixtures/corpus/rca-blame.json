@@ -1,0 +1,47 @@
+{
+  "rca_id": "rca-blame",
+  "severity": "sev2",
+  "timeline": [
+    {
+      "name": "detection",
+      "at": "2026-05-02T03:14:00"
+    },
+    {
+      "name": "escalation",
+      "at": "2026-05-02T03:22:00"
+    },
+    {
+      "name": "mitigation",
+      "at": "2026-05-02T04:05:00"
+    },
+    {
+      "name": "resolution",
+      "at": "2026-05-02T04:40:00"
+    }
+  ],
+  "impact": "Batch settlement was delayed by 86 minutes affecting 220 accounts.",
+  "stated_cause": "Human error. The engineer on call failed to check the config before applying it.",
+  "contributing_factors": [
+    "Tom Bergstrom did not follow the change checklist.",
+    "The config had no validation step in CI."
+  ],
+  "narrative": "Tom Bergstrom applied the config at 03:10 and rolled it back at 04:05.",
+  "participants": [
+    "Tom Bergstrom",
+    "Ines Duarte"
+  ],
+  "action_items": [
+    {
+      "title": "Add config validation to CI",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "SET-140",
+      "category": "prevent",
+      "closure_evidence": "PR 4412"
+    }
+  ],
+  "closed_at": "2026-05-04T00:00:00",
+  "followups_exported_at": "2026-05-05T00:00:00"
+}

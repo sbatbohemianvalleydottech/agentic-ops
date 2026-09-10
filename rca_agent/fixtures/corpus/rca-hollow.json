@@ -1,0 +1,67 @@
+{
+  "rca_id": "rca-hollow",
+  "severity": "sev1",
+  "timeline": [
+    {
+      "name": "detection",
+      "at": "2026-04-14T14:02:00"
+    },
+    {
+      "name": "escalation",
+      "at": "2026-04-14T14:09:00"
+    },
+    {
+      "name": "mitigation",
+      "at": "2026-04-14T14:41:00"
+    },
+    {
+      "name": "resolution",
+      "at": "2026-04-14T15:22:00"
+    }
+  ],
+  "impact": "2,310 users experienced elevated latency for 80 minutes. Error rate peaked at 6.2%.",
+  "stated_cause": "A bad deploy went out and caused elevated latency across the API tier.",
+  "contributing_factors": [
+    "The deploy contained a change to the connection pool configuration.",
+    "The change was reverted once the team identified it as the source."
+  ],
+  "narrative": "The on-call engineer received an alert at 14:02 and began investigating. The deploy was reverted at 14:41 and metrics recovered shortly after.",
+  "participants": [
+    "Ines Duarte",
+    "Tom Bergstrom"
+  ],
+  "action_items": [
+    {
+      "title": "Review connection pool settings before deploys",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "API-901",
+      "category": "prevent",
+      "closure_evidence": "PR 4412"
+    },
+    {
+      "title": "Improve deploy dashboards",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "API-902",
+      "category": "prepare",
+      "closure_evidence": "PR 4412"
+    },
+    {
+      "title": "Send the incident note to the engineering list",
+      "state": "closed",
+      "created": "2026-03-02T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "API-903",
+      "category": "comms",
+      "closure_evidence": "PR 4412"
+    }
+  ],
+  "closed_at": "2026-04-16T00:00:00",
+  "followups_exported_at": "2026-04-17T00:00:00"
+}

@@ -1,0 +1,92 @@
+{
+  "rca_id": "rca-abandoned",
+  "severity": "sev1",
+  "timeline": [
+    {
+      "name": "detection",
+      "at": "2026-03-20T22:10:00"
+    },
+    {
+      "name": "escalation",
+      "at": "2026-03-20T22:18:00"
+    },
+    {
+      "name": "mitigation",
+      "at": "2026-03-20T23:40:00"
+    },
+    {
+      "name": "resolution",
+      "at": "2026-03-20T00:50:00"
+    }
+  ],
+  "impact": "Payments were unavailable for 160 minutes. 12,400 transactions failed.",
+  "stated_cause": "The primary database failed over to a replica that had not finished catching up, so writes were rejected.",
+  "contributing_factors": [
+    "Failover does not check replica lag before promoting.",
+    "Replica lag alerting was disabled during a previous migration and never re-enabled.",
+    "The runbook assumed a healthy replica and had no manual promotion path."
+  ],
+  "narrative": "The on-call was paged at 22:10 when write errors spiked.",
+  "participants": [
+    "Sam Okafor",
+    "Ines Duarte"
+  ],
+  "action_items": [
+    {
+      "title": "Gate failover on replica lag below 5s",
+      "state": "open",
+      "created": "2026-03-22T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "DB-500",
+      "category": "prevent"
+    },
+    {
+      "title": "Re-enable replica lag alerting",
+      "state": "open",
+      "created": "2026-03-22T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "DB-501",
+      "category": "prepare"
+    },
+    {
+      "title": "Add a manual promotion path to the runbook",
+      "state": "open",
+      "created": "2026-03-22T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "DB-502",
+      "category": "process"
+    },
+    {
+      "title": "Add a failover rehearsal to the quarterly schedule",
+      "state": "open",
+      "created": "2026-03-22T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "DB-503",
+      "category": "prepare"
+    },
+    {
+      "title": "Set a default lock timeout of 5s on all migrations",
+      "state": "open",
+      "created": "2026-03-22T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "DB-504",
+      "category": "prevent"
+    },
+    {
+      "title": "Post the incident summary to the status page",
+      "state": "closed",
+      "created": "2026-03-22T00:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-04-01T00:00:00",
+      "tracker_ref": "DB-505",
+      "category": "comms"
+    }
+  ],
+  "closed_at": "2026-03-25T00:00:00",
+  "followups_exported_at": null
+}

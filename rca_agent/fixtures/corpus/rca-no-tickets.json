@@ -1,0 +1,46 @@
+{
+  "rca_id": "rca-no-tickets",
+  "severity": "sev3",
+  "timeline": [
+    {
+      "name": "detection",
+      "at": "2026-06-08T16:20:00"
+    },
+    {
+      "name": "escalation",
+      "at": "2026-06-08T16:31:00"
+    },
+    {
+      "name": "mitigation",
+      "at": "2026-06-08T17:02:00"
+    },
+    {
+      "name": "resolution",
+      "at": "2026-06-08T17:25:00"
+    }
+  ],
+  "impact": "Webhook delivery lagged by up to 41 minutes for 88 integrations.",
+  "stated_cause": "The webhook queue has no backpressure, so a slow consumer starves every other consumer.",
+  "contributing_factors": [
+    "Consumers share one queue with no per-tenant isolation.",
+    "Queue depth is not alerted on."
+  ],
+  "narrative": "Lag was reported by an integrator at 16:20.",
+  "participants": [
+    "Sam Okafor"
+  ],
+  "action_items": [
+    {
+      "title": "We will improve testing",
+      "state": "open",
+      "created": "2026-03-02T00:00:00"
+    },
+    {
+      "title": "Be more careful with consumer changes",
+      "state": "open",
+      "created": "2026-03-02T00:00:00"
+    }
+  ],
+  "closed_at": "2026-06-10T00:00:00",
+  "followups_exported_at": "2026-06-11T00:00:00"
+}
