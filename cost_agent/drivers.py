@@ -72,6 +72,8 @@ class Analysis:
     unassessable: tuple[Finding, ...] = ()
     unmatched: tuple[Unmatched, ...] = ()
     healthy: tuple[str, ...] = ()
+    # Every resource from either input. Used to assert nothing was dropped.
+    resource_count: int = 0
     findings_by_resource: dict = field(default_factory=dict)
 
 
@@ -165,5 +167,6 @@ def build_analysis(
         unassessable=unassessable,
         unmatched=inputs.unmatched,
         healthy=tuple(healthy),
+        resource_count=len(inputs.matched) + len(inputs.unmatched),
         findings_by_resource=by_resource,
     )

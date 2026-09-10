@@ -1,0 +1,100 @@
+import argparse
+import os
+import sys
+from dataclasses import replace
+from datetime import datetime
+from pathlib import Path
+
+from ledger import Ledger
+
+from .pipeline import analyse
+from .report import render_report
+
+
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="cost_agent",
+        description=(
+            "Find the structural reasons a cloud bill is what it is, rather than "
+            "ranking line items by size."
+        ),
+    )
+    parser.add_argument("--costs", required=True, type=Path, help="cost export CSV")
+    parser.add_argument(
+        "--inventory", required=True, type=Path, help="resource inventory JSON"
+    )
+    parser.add_argument(
+        "--thresholds", type=Path, help="override the default threshold config"
+    )
+    parser.add_argument(
+        "--as-of",
+        type=datetime.fromisoformat,
+        default=datetime.now().replace(microsecond=0),
+        help=(
+            "analysis date, ISO format. Passed in rather than read from the clock "
+            "so a run can be reproduced exactly"
+        ),
+    )
+    parser.add_argument(
+        "--confidence",
+        action="store_true",
+        help=(
+            "rate each driver's confidence with two independent assessors and a "
+            "judge. The only part that spends money, and it needs API keys"
+        ),
+    )
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = build_parser().parse_args(argv)
+
+    analysis = analyse(
+        args.costs,
+        args.inventory,
+        thresholds_path=args.thresholds,
+        as_of=args.as_of,
+    )
+
+    if args.confidence:
+        missing = [
+            key
+            for key in ("ANTHROPIC_API_KEY", "GEMINI_API_KEY")
+            if not os.environ.get(key)
+        ]
+        if missing:
+            print(f"--confidence needs {' and '.join(missing)}.", file=sys.stderr)
+            return 1
+
+        try:
+            from ensemble.orchestrator import Rater
+            from ensemble.providers.litellm import LiteLLMProvider
+
+            from .confidence import rate_confidence
+        except ImportError:
+            print('litellm not installed. pip install -e ".[providers]"', file=sys.stderr)
+            return 1
+
+        provider = LiteLLMProvider()
+        ledger = Ledger(Path(".ledger/calls.jsonl"))
+        analysis = replace(
+            analysis,
+            drivers=tuple(
+                rate_confidence(
+                    driver,
+                    raters=[
+                        Rater(provider, os.environ.get("RATER_A", "anthropic/claude-opus-5")),
+                        Rater(provider, os.environ.get("RATER_B", "gemini/gemini-2.5-pro")),
+                    ],
+                    judge=Rater(
+                        provider, os.environ.get("JUDGE", "anthropic/claude-sonnet-5")
+                    ),
+                    ledger=ledger,
+                    as_of=args.as_of,
+                )
+                for driver in analysis.drivers
+            ),
+        )
+
+    print(render_report(analysis))
+    return 0
