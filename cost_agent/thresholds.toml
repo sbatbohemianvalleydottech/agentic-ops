@@ -1,0 +1,37 @@
+# The reviewable surface of this analysis.
+#
+# Every arguable number lives here rather than in a branch, because what counts
+# as "under-utilised" IS the substance of the argument, and a reviewer who cannot
+# see it has to take the findings on faith.
+#
+# Change these and re-run. No code edit required.
+
+# At or below this average utilisation a resource is idle, not merely quiet.
+idle_ceiling = 0.05
+
+# Below this, under-utilised. Above it, healthy. This is the single most
+# contestable number in the tool.
+target_floor = 0.65
+
+# provisioned / observed_peak above this is oversized. 1.3 leaves 30% headroom,
+# which is deliberately generous: the cost of an outage exceeds the saving.
+oversize_ratio = 1.3
+
+# Hot-tier storage untouched for longer than this is paying for access nobody uses.
+cold_after_days = 30
+
+# Unattached for longer than this is not "about to be reattached".
+stale_after_days = 14
+
+# Weekday-to-weekend utilisation above this is a fleet provisioned for a peak it
+# sees five days a week and paid for seven.
+weekend_ratio = 4.0
+
+# Monthly to annual. 365/30, not 12: multiplying by 12 assumes a 360-day year and
+# understates the annual figure by about 1.4%, which on a large bill is six
+# figures. Quoted as a string so it parses to an exact Decimal.
+annualisation_multiplier = "12.1667"
+
+# A resource carrying none of these tags has no owner, which means accountability
+# went missing before the money did.
+owner_tag_keys = ["owner", "team", "cost_centre"]

@@ -1,0 +1,17 @@
+resource_id,cloud,service,tags,period_cost
+a-node-1,gcp,kubernetes,owner=platform,19800.00
+a-node-2,gcp,kubernetes,owner=platform,18200.00
+a-node-3,gcp,kubernetes,owner=platform,17500.00
+a-sql-1,gcp,managed-sql,team=data,8600.00
+a-sql-2,gcp,managed-sql,team=data,7900.00
+a-redis-1,gcp,managed-cache,owner=platform,4100.00
+a-kafka-1,gcp,managed-stream,team=data,6100.00
+a-ci-1,gcp,compute,owner=devex,5400.00
+a-bucket-1,gcp,object-store,team=analytics,6800.00
+a-bucket-2,gcp,object-store,team=analytics,3200.00
+a-logs-1,gcp,object-store,owner=platform,3800.00
+a-vol-1,gcp,block-store,owner=platform,900.00
+a-vol-2,gcp,block-store,,1200.00
+a-vm-1,gcp,compute,,5200.00
+a-mystery-1,gcp,compute,owner=unknown,2400.00
+a-orphan-cost,gcp,object-store,,420.00

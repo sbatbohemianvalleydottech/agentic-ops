@@ -1,0 +1,56 @@
+[
+  {"resource_id": "a-node-1", "kind": "compute", "provisioned": 64, "observed_peak": 26,
+   "utilisation_avg": 0.38, "age_days": 620, "attached": true, "commitment_covered": true,
+   "tags": {"owner": "platform"}},
+  {"resource_id": "a-node-2", "kind": "compute", "provisioned": 64, "observed_peak": 23,
+   "utilisation_avg": 0.34, "age_days": 610, "attached": true, "commitment_covered": true,
+   "tags": {"owner": "platform"}},
+  {"resource_id": "a-node-3", "kind": "compute", "provisioned": 48, "observed_peak": 21,
+   "utilisation_avg": 0.41, "age_days": 590, "attached": true, "commitment_covered": true,
+   "tags": {"owner": "platform"}},
+
+  {"resource_id": "a-sql-1", "kind": "database", "provisioned": 32, "observed_peak": 19,
+   "utilisation_avg": 0.55, "age_days": 500, "attached": true, "commitment_covered": true,
+   "tags": {"team": "data"}},
+  {"resource_id": "a-sql-2", "kind": "database", "provisioned": 32, "observed_peak": 16,
+   "utilisation_avg": 0.48, "age_days": 480, "attached": true, "commitment_covered": true,
+   "tags": {"team": "data"}},
+
+  {"resource_id": "a-redis-1", "kind": "cache", "provisioned": 16, "observed_peak": 6,
+   "utilisation_avg": 0.35, "age_days": 400, "attached": true, "commitment_covered": true,
+   "tags": {"owner": "platform"}},
+
+  {"resource_id": "a-kafka-1", "kind": "queue", "provisioned": 24, "observed_peak": 11,
+   "utilisation_avg": 0.42, "age_days": 450, "attached": true, "commitment_covered": true,
+   "tags": {"team": "data"}},
+
+  {"resource_id": "a-ci-1", "kind": "compute", "provisioned": 40, "observed_peak": 30,
+   "utilisation_avg": 0.48, "weekday_utilisation": 0.70, "weekend_utilisation": 0.05,
+   "age_days": 380, "attached": true, "commitment_covered": true,
+   "tags": {"owner": "devex"}},
+
+  {"resource_id": "a-bucket-1", "kind": "storage", "tier": "standard",
+   "last_access": "2026-02-20T00:00:00", "age_days": 900, "attached": true,
+   "commitment_covered": true, "tags": {"team": "analytics"}},
+  {"resource_id": "a-bucket-2", "kind": "storage", "tier": "standard",
+   "last_access": "2026-05-02T00:00:00", "age_days": 700, "attached": true,
+   "commitment_covered": true, "tags": {"team": "analytics"}},
+  {"resource_id": "a-logs-1", "kind": "storage", "tier": "standard",
+   "last_access": "2026-06-01T00:00:00", "age_days": 800, "attached": true,
+   "commitment_covered": true, "tags": {"owner": "platform"}},
+
+  {"resource_id": "a-vol-1", "kind": "storage", "tier": "standard", "age_days": 180,
+   "attached": false, "commitment_covered": true, "tags": {"owner": "platform"}},
+  {"resource_id": "a-vol-2", "kind": "storage", "tier": "standard", "age_days": 240,
+   "attached": false, "commitment_covered": true, "tags": {}},
+
+  {"resource_id": "a-vm-1", "kind": "compute", "provisioned": 8, "observed_peak": 7,
+   "utilisation_avg": 0.72, "age_days": 300, "attached": true, "commitment_covered": false,
+   "tags": {}},
+
+  {"resource_id": "a-mystery-1", "kind": "compute", "age_days": 250, "attached": true,
+   "commitment_covered": true, "tags": {"owner": "unknown"}},
+
+  {"resource_id": "a-orphan-inv", "kind": "storage", "tier": "nearline", "age_days": 100,
+   "attached": true, "commitment_covered": true, "tags": {"owner": "platform"}}
+]

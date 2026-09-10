@@ -1,0 +1,46 @@
+[
+  {"resource_id": "b-node-1", "kind": "compute", "provisioned": 32, "observed_peak": 27,
+   "utilisation_avg": 0.74, "age_days": 200, "attached": true, "commitment_covered": false,
+   "tags": {}},
+  {"resource_id": "b-node-2", "kind": "compute", "provisioned": 32, "observed_peak": 28,
+   "utilisation_avg": 0.78, "age_days": 190, "attached": true, "commitment_covered": false,
+   "tags": {}},
+  {"resource_id": "b-node-3", "kind": "compute", "provisioned": 24, "observed_peak": 20,
+   "utilisation_avg": 0.71, "age_days": 210, "attached": true, "commitment_covered": false,
+   "tags": {}},
+
+  {"resource_id": "b-sql-1", "kind": "database", "provisioned": 16, "observed_peak": 14,
+   "utilisation_avg": 0.82, "age_days": 300, "attached": true, "commitment_covered": false,
+   "tags": {}},
+  {"resource_id": "b-sql-2", "kind": "database", "provisioned": 16, "observed_peak": 13,
+   "utilisation_avg": 0.76, "age_days": 280, "attached": true, "commitment_covered": false,
+   "tags": {}},
+
+  {"resource_id": "b-cache-1", "kind": "cache", "provisioned": 8, "observed_peak": 7,
+   "utilisation_avg": 0.68, "age_days": 150, "attached": true, "commitment_covered": true,
+   "tags": {"owner": "payments"}},
+
+  {"resource_id": "b-fn-1", "kind": "compute", "provisioned": 4, "observed_peak": 3,
+   "utilisation_avg": 0.69, "age_days": 120, "attached": true, "commitment_covered": false,
+   "tags": {}},
+
+  {"resource_id": "b-vol-1", "kind": "storage", "tier": "standard", "age_days": 300,
+   "attached": false, "commitment_covered": true, "tags": {}},
+  {"resource_id": "b-vol-2", "kind": "storage", "tier": "standard", "age_days": 260,
+   "attached": false, "commitment_covered": true, "tags": {}},
+  {"resource_id": "b-vol-3", "kind": "storage", "tier": "standard", "age_days": 190,
+   "attached": false, "commitment_covered": true, "tags": {}},
+  {"resource_id": "b-vol-4", "kind": "storage", "tier": "standard", "age_days": 140,
+   "attached": false, "commitment_covered": true, "tags": {}},
+  {"resource_id": "b-vol-5", "kind": "storage", "tier": "standard", "age_days": 95,
+   "attached": false, "commitment_covered": true, "tags": {}},
+  {"resource_id": "b-snap-1", "kind": "storage", "tier": "standard", "age_days": 420,
+   "attached": false, "commitment_covered": true, "tags": {}},
+
+  {"resource_id": "b-bucket-1", "kind": "storage", "tier": "nearline",
+   "last_access": "2026-09-05T00:00:00", "age_days": 500, "attached": true,
+   "commitment_covered": true, "tags": {"team": "archive"}},
+  {"resource_id": "b-bucket-2", "kind": "storage", "tier": "coldline",
+   "last_access": "2026-08-28T00:00:00", "age_days": 600, "attached": true,
+   "commitment_covered": true, "tags": {"team": "archive"}}
+]

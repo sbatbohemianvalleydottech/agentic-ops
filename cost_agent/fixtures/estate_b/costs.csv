@@ -1,0 +1,16 @@
+resource_id,cloud,service,tags,period_cost
+b-node-1,aws,container-service,,14200.00
+b-node-2,aws,container-service,,13600.00
+b-node-3,aws,container-service,,12900.00
+b-sql-1,aws,managed-sql,,9800.00
+b-sql-2,aws,managed-sql,,8700.00
+b-cache-1,aws,managed-cache,owner=payments,3900.00
+b-fn-1,aws,serverless,,2600.00
+b-vol-1,aws,block-store,,4200.00
+b-vol-2,aws,block-store,,3800.00
+b-vol-3,aws,block-store,,3100.00
+b-vol-4,aws,block-store,,2900.00
+b-vol-5,aws,block-store,,2400.00
+b-snap-1,aws,block-store,,1800.00
+b-bucket-1,aws,object-store,team=archive,2200.00
+b-bucket-2,aws,object-store,team=archive,1600.00
