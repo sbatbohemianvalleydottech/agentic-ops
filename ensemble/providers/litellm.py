@@ -12,10 +12,29 @@ model, so changing provider is configuration.
 
 import json
 
-from litellm import completion, completion_cost
+from litellm import completion, completion_cost, supports_response_schema
 
 from ..types import EvidenceBundle, JudgeVerdict, RaterVerdict, Rubric
 from . import Usage
+
+# Schemas rather than a bare json_object. LiteLLM passes these natively where the
+# provider supports them and falls back to a tool call where it does not, so the
+# reply is schema-valid instead of merely valid JSON. That matters here: a rater
+# returning a well-formed object with no `grade` key would otherwise surface as a
+# missing verdict and halt a decision for the wrong reason.
+RATER_SCHEMA = {
+    "type": "object",
+    "properties": {"grade": {"type": "string"}, "reasoning": {"type": "string"}},
+    "required": ["grade", "reasoning"],
+    "additionalProperties": False,
+}
+
+JUDGE_SCHEMA = {
+    "type": "object",
+    "properties": {"justified": {"type": "boolean"}, "reasoning": {"type": "string"}},
+    "required": ["justified", "reasoning"],
+    "additionalProperties": False,
+}
 
 _RATER_PROMPT = """You are grading against a fixed rubric.
 
@@ -53,19 +72,42 @@ def _render(evidence: EvidenceBundle) -> str:
     )
 
 
-def _call(model: str, prompt: str) -> tuple[dict | None, Usage]:
+def _response_format(model: str, schema: dict, name: str) -> dict:
+    if supports_response_schema(model=model):
+        return {
+            "type": "json_schema",
+            "json_schema": {"name": name, "schema": schema, "strict": True},
+        }
+    return {"type": "json_object"}
+
+
+def _cost(response) -> float:
+    """LiteLLM already prices every call and stashes the result on the response.
+
+    Preferring that over recomputing with `completion_cost` avoids a second pass
+    over the model tables and, more usefully, picks up a cost the provider
+    reported itself, which the recomputation would replace with an estimate.
+    """
+    hidden = getattr(response, "_hidden_params", None) or {}
+    reported = hidden.get("response_cost")
+    if reported is not None:
+        return float(reported)
+    return float(completion_cost(completion_response=response))
+
+
+def _call(model: str, prompt: str, schema: dict, name: str) -> tuple[dict | None, Usage]:
     """One model call. Any failure returns no payload rather than a default."""
     try:
         response = completion(
             model=model,
             messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"},
+            response_format=_response_format(model, schema, name),
         )
         payload = json.loads(response.choices[0].message.content)
         usage = Usage(
             input_tokens=response.usage.prompt_tokens,
             output_tokens=response.usage.completion_tokens,
-            cost=completion_cost(completion_response=response),
+            cost=_cost(response),
         )
         return payload, usage
     except Exception:
@@ -88,6 +130,8 @@ class LiteLLMProvider:
                 subject=evidence.subject,
                 evidence=_render(evidence),
             ),
+            RATER_SCHEMA,
+            "rater_verdict",
         )
         if payload is None or "grade" not in payload:
             return None, usage
@@ -115,6 +159,8 @@ class LiteLLMProvider:
                 subject=evidence.subject,
                 evidence=_render(evidence),
             ),
+            JUDGE_SCHEMA,
+            "judge_verdict",
         )
         if payload is None or "justified" not in payload:
             return None, usage
