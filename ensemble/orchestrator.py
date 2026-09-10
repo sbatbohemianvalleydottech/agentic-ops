@@ -64,6 +64,7 @@ def run_decision(
             input_tokens=call.usage.input_tokens,
             output_tokens=call.usage.output_tokens,
             cost=call.usage.cost,
+            rubric=rubric.name,
         )
         if call.failed:
             failures.append(

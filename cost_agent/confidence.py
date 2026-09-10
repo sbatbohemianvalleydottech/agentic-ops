@@ -11,6 +11,7 @@ agreement wearing a number. So a split marks the driver for review and says so.
 from dataclasses import replace
 from datetime import datetime
 
+from ensemble.explain import explain
 from ensemble.gate import Decision
 from ensemble.orchestrator import Rater, run_decision
 from ensemble.types import EvidenceBundle, EvidenceRecord, Rubric
@@ -77,9 +78,8 @@ def rate_confidence(
             confidence="NEEDS_REVIEW",
             what_would_change_confidence=(
                 f"{driver.what_would_change_confidence} "
-                f"Assessment halted ({result.decision.value}); the assessors did not "
-                "agree this rating is supported, so a human should look before this "
-                "driver is relied on."
+                f"{explain(result)} A human should look before this driver is "
+                "relied on."
             ),
         )
 

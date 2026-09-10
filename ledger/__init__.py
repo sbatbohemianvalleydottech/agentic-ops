@@ -25,6 +25,7 @@ class Ledger:
         input_tokens: int,
         output_tokens: int,
         cost: float,
+        rubric: str | None = None,
     ) -> None:
         """Append one line for one model call. Never rewrites history."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -36,6 +37,10 @@ class Ledger:
             "input_tokens": input_tokens,
             "output_tokens": output_tokens,
             "cost": cost,
+            # What the decision assessed. Without it the cost of a decision is
+            # recorded but not what it was for, so spend cannot be summed per
+            # dimension and row order becomes the only way to tell them apart.
+            "rubric": rubric,
             "timestamp": datetime.now(UTC).isoformat(),
         }
         with self.path.open("a") as handle:

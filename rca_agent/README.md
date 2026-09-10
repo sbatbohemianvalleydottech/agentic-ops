@@ -142,6 +142,28 @@ the assessors and the judge in the report.
 Watch `rca-hollow`. It is the case where the structural checks are silent and the
 judgement layer is the only thing between a fluent document and a repeat incident.
 
+### Cost may be a leading indicator of an ambiguous rubric
+
+From one live run, output tokens per dimension while input stayed flat at 858-877:
+
+| dimension | opus rater | gemini rater | sonnet judge |
+|---|---|---|---|
+| cause_not_trigger | 466 | 486 | 257 |
+| **no_alternate_reality** (halted, assessors split) | **1017** | **684** | **1490** |
+| actions_would_prevent | 443 | 630 | 370 |
+
+The models wrote more when the answer was not clear, and the judge wrote nearly six times
+more. If that holds, a dimension's cost tells you the rubric does not discriminate before
+anyone reads the output.
+
+Three dimensions of one document is an observation, not a threshold. Recovering even this
+table meant inferring the dimension from row order, so ledger rows now record the rubric
+they assessed and the question is at least answerable across a corpus.
+
+```bash
+python -c "import json,collections; c=collections.Counter(); [c.update({json.loads(l).get('rubric'): json.loads(l)['cost']}) for l in open('.ledger/calls.jsonl')]; print(c)"
+```
+
 `python -m rca_agent.draft` goes further: it has an agent draft an RCA from raw incident
 artifacts, then runs this eval over what it just wrote. Drafting is not a feature here,
 because an agent-written RCA is precisely the artifact the eval exists to doubt.

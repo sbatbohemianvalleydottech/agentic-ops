@@ -14,6 +14,7 @@ the entire review.
 from dataclasses import dataclass
 from datetime import datetime
 
+from ensemble.explain import explain
 from ensemble.gate import Decision
 from ensemble.orchestrator import Rater, run_decision
 from ensemble.types import EvidenceBundle, EvidenceRecord
@@ -124,20 +125,15 @@ def assess_judgement(
 
         halted = result.decision is not Decision.PROCEED
 
-        if not halted:
-            reasoning = "; ".join(v.reasoning for v in result.raters)
-        elif result.failures:
-            # Nobody disagreed. The calls failed, and saying otherwise sends the
-            # operator looking for a judgement problem that does not exist.
-            detail = "; ".join(
-                f"{f.role} {f.model} failed: {f.reason}" for f in result.failures
-            )
-            reasoning = f"assessment halted ({result.decision.value}): {detail}"
-        else:
-            reasoning = (
-                f"assessment halted ({result.decision.value}); assessors did not "
-                "agree this grade is supported"
-            )
+        # On a halt, why is `explain`'s job. It was built here once and in
+        # cost_agent once, and both said "assessors did not agree this grade is
+        # supported" for every halt kind, which describes correlated failure and
+        # nothing else.
+        reasoning = (
+            "; ".join(v.reasoning for v in result.raters)
+            if not halted
+            else explain(result)
+        )
 
         grades.append(
             DimensionGrade(
