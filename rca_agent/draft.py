@@ -5,7 +5,9 @@ precisely the artifact the eval exists to doubt, and shipping it as a capability
 would be claiming the opposite. It ships as a demo because watching the eval mark
 its own drafter down is the clearest statement of what the eval is for.
 
-    export ANTHROPIC_API_KEY=... GEMINI_API_KEY=...
+Put your keys in `.env` at the repository root (copy `.env.example`), or export
+them. Then:
+
     python -m rca_agent.draft
 """
 
@@ -14,6 +16,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from ensemble.env import load_env
 from ledger import Ledger
 
 from .report import render_review
@@ -21,7 +24,8 @@ from .rubric import load_rubric
 from .structure import check_structure
 from .types import load_rca
 
-DRAFTER = os.environ.get("DRAFTER", "anthropic/claude-opus-5")
+# Default only. Read from the environment inside main(), after .env loads.
+DEFAULT_DRAFTER = "anthropic/claude-opus-5"
 AS_OF = datetime(2026, 9, 1)
 
 # Raw material only. No conclusions, no framing, nothing that hands the drafter
@@ -110,6 +114,9 @@ RCA_SCHEMA = {
 
 
 def main() -> int:
+    load_env()
+    drafter = os.environ.get("DRAFTER", DEFAULT_DRAFTER)
+
     if not os.environ.get("ANTHROPIC_API_KEY"):
         print("Set ANTHROPIC_API_KEY first. See the module docstring.")
         return 1
@@ -120,10 +127,10 @@ def main() -> int:
         print('litellm not installed. Run: pip install -e ".[providers]"')
         return 1
 
-    print(f"Drafting with {DRAFTER}...\n")
+    print(f"Drafting with {drafter}...\n")
 
     response = completion(
-        model=DRAFTER,
+        model=drafter,
         messages=[
             {
                 "role": "user",
@@ -138,7 +145,7 @@ def main() -> int:
                 "type": "json_schema",
                 "json_schema": {"name": "rca", "schema": RCA_SCHEMA, "strict": True},
             }
-            if supports_response_schema(model=DRAFTER)
+            if supports_response_schema(model=drafter)
             else {"type": "json_object"}
         ),
     )
@@ -162,7 +169,7 @@ def main() -> int:
 
     ledger = Ledger(Path(".ledger/calls.jsonl"))
     ledger.record(
-        decision_id="draft-demo", caller="rca_agent.draft", model=DRAFTER,
+        decision_id="draft-demo", caller="rca_agent.draft", model=drafter,
         role="drafter",
         input_tokens=response.usage.prompt_tokens,
         output_tokens=response.usage.completion_tokens,

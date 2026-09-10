@@ -3,8 +3,9 @@
 The only thing in this repository that spends money. Everything else, including
 every test, runs offline against the fake provider.
 
-    export ANTHROPIC_API_KEY=...
-    export GEMINI_API_KEY=...
+Put your keys in `.env` at the repository root (copy `.env.example`), or export
+them. Then:
+
     python -m ensemble.demo
 
 Models are overridable, because nothing here should hardcode a vendor:
@@ -19,14 +20,18 @@ from pathlib import Path
 
 from ledger import Ledger
 
+from .env import load_env
 from .gate import Decision
 from .orchestrator import Rater, run_decision
 from .report import format_halt_report
 from .types import EvidenceBundle, EvidenceRecord, Rubric
 
-RATER_A = os.environ.get("RATER_A", "anthropic/claude-opus-5")
-RATER_B = os.environ.get("RATER_B", "gemini/gemini-2.5-pro")
-JUDGE = os.environ.get("JUDGE", "anthropic/claude-sonnet-5")
+# Defaults only. The environment is read inside main(), after .env is loaded,
+# because a module-level read happens at import time and would silently ignore
+# anything the file sets.
+DEFAULT_RATER_A = "anthropic/claude-opus-5"
+DEFAULT_RATER_B = "gemini/gemini-2.5-pro"
+DEFAULT_JUDGE = "anthropic/claude-sonnet-5"
 
 RUBRIC = Rubric(
     name="performance",
@@ -66,6 +71,7 @@ EVIDENCE = EvidenceBundle(
 
 
 def main() -> int:
+    load_env()
     missing = [k for k in ("ANTHROPIC_API_KEY", "GEMINI_API_KEY") if not os.environ.get(k)]
     if missing:
         print(f"Set {' and '.join(missing)} first. See the module docstring.")
@@ -77,16 +83,20 @@ def main() -> int:
         print('litellm is not installed. Run: pip install -e ".[providers]"')
         return 1
 
+    rater_a = os.environ.get("RATER_A", DEFAULT_RATER_A)
+    rater_b = os.environ.get("RATER_B", DEFAULT_RATER_B)
+    judge = os.environ.get("JUDGE", DEFAULT_JUDGE)
+
     provider = LiteLLMProvider()
     ledger = Ledger(Path(".ledger/calls.jsonl"))
 
-    print(f"Raters:  {RATER_A}\n         {RATER_B}\nJudge:   {JUDGE}\n")
+    print(f"Raters:  {rater_a}\n         {rater_b}\nJudge:   {judge}\n")
 
     result = run_decision(
         rubric=RUBRIC,
         evidence=EVIDENCE,
-        raters=[Rater(provider, RATER_A), Rater(provider, RATER_B)],
-        judge=Rater(provider, JUDGE),
+        raters=[Rater(provider, rater_a), Rater(provider, rater_b)],
+        judge=Rater(provider, judge),
         ledger=ledger,
         caller="demo",
     )
