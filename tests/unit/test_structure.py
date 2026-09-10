@@ -10,7 +10,7 @@ import pytest
 
 from rca_agent.rubric import load_rubric
 from rca_agent.structure import check_structure
-from rca_agent.types import ActionItem, Category, Dimension, RCA, TimelineMoment
+from rca_agent.types import RCA, ActionItem, Category, Dimension, TimelineMoment
 
 AS_OF = datetime(2026, 9, 1)
 
