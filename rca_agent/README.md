@@ -153,12 +153,27 @@ From one live run, output tokens per dimension while input stayed flat at 858-87
 | actions_would_prevent | 443 | 630 | 370 |
 
 The models wrote more when the answer was not clear, and the judge wrote nearly six times
-more. If that holds, a dimension's cost tells you the rubric does not discriminate before
-anyone reads the output.
+more. Across three runs of the same document, `no_alternate_reality` cost twice the other
+two dimensions every time, with input flat to within 2%. If that holds more widely, a
+dimension's cost tells you the rubric does not discriminate before anyone reads the output.
 
-Three dimensions of one document is an observation, not a threshold. Recovering even this
+Three runs of one document is still an observation, not a threshold. Recovering even this
 table meant inferring the dimension from row order, so ledger rows now record the rubric
 they assessed and the question is at least answerable across a corpus.
+
+### The split repeated, which is the more interesting half
+
+The same two models reached the same two grades in every run: Opus `adequate`, Gemini
+`strong`. A disagreement that reproduces and one that flaps mean opposite things. Flapping
+is sampling noise, and a second attempt might settle it. Stable means the two models read
+this rubric differently and consistently, so re-running is spend with no information in it,
+and what needs fixing is the rubric or the choice of raters.
+
+**This tool cannot currently tell you which you have.** Every run is independent and
+nothing compares them, so a stable split and a coin-flip split are reported identically.
+Recorded as a known limitation rather than fixed, because separating them means deciding
+how many repeats are worth paying for, and that is a judgement about a corpus this
+repository does not have.
 
 ```bash
 python -c "import json,collections; c=collections.Counter(); [c.update({json.loads(l).get('rubric'): json.loads(l)['cost']}) for l in open('.ledger/calls.jsonl')]; print(c)"
