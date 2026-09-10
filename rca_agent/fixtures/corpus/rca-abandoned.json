@@ -16,7 +16,7 @@
     },
     {
       "name": "resolution",
-      "at": "2026-03-20T00:50:00"
+      "at": "2026-03-21T00:50:00"
     }
   ],
   "impact": "Payments were unavailable for 160 minutes. 12,400 transactions failed.",
