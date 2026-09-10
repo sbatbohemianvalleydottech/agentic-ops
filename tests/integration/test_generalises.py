@@ -81,6 +81,44 @@ def test_nothing_is_silently_dropped_on_either_estate(estate, request):
     assert len(accounted) == analysis.resource_count
 
 
+# Feature 004 added two rules. Neither may change an estate that carries no
+# decommission dates. The rule only fires on a field that did not previously
+# exist, so this should hold, but "should hold" is not a test. SC-002.
+BEFORE_004 = {
+    "estate_a": (
+        Decimal("1356830.38"),
+        [
+            ("CAPACITY_MANAGEMENT", Decimal("1065802.92")),
+            ("RETENTION_LIFECYCLE", Decimal("167900.46")),
+            ("COMMERCIAL", Decimal("63266.84")),
+            ("WORKLOAD_ELIMINATION", Decimal("25550.07")),
+        ],
+    ),
+    "estate_b": (
+        Decimal("1067019.59"),
+        [
+            ("COMMERCIAL", Decimal("720268.64")),
+            ("WORKLOAD_ELIMINATION", Decimal("221433.94")),
+            ("CAPACITY_MANAGEMENT", Decimal("31633.42")),
+        ],
+    ),
+}
+
+
+@pytest.mark.parametrize("estate", ["estate_a", "estate_b"])
+def test_estates_without_decommission_dates_are_untouched_by_feature_004(
+    estate, request
+):
+    analysis = request.getfixturevalue(estate)
+    expected_total, expected_drivers = BEFORE_004[estate]
+
+    assert analysis.total_bill_annual == expected_total
+    assert [
+        (d.root_cause.name, d.annual_cost) for d in analysis.drivers
+    ] == expected_drivers
+    assert all(d.decommission_horizon is None for d in analysis.drivers)
+
+
 def test_estate_a_reports_the_unassessable_resource(estate_a):
     """a-mystery-1 has no utilisation figure. It must not pass as healthy."""
     assert "a-mystery-1" in {f.resource_id for f in estate_a.unassessable}

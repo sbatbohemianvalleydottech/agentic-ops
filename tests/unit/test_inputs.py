@@ -2,6 +2,7 @@
 are both findings in their own right, and discarding either understates the bill.
 """
 
+from datetime import datetime
 from decimal import Decimal
 
 from cost_agent.inputs import load_inputs
@@ -58,6 +59,23 @@ def test_money_is_decimal_at_the_boundary_so_no_float_enters_the_arithmetic(tmp_
     for resource in inputs.matched:
         assert isinstance(resource.period_cost, Decimal)
     assert inputs.total_period_cost == Decimal("2042.85")
+
+
+def test_a_decommission_date_loads_when_present_and_is_absent_otherwise(tmp_path):
+    """A stated organisational commitment, supplied as input. The tool never
+    infers that a workload is legacy."""
+    costs, inventory = write_pair(tmp_path)
+    inventory.write_text(
+        INVENTORY.replace(
+            '"resource_id": "r-1",',
+            '"resource_id": "r-1", "decommission_at": "2028-12-31T00:00:00",',
+        )
+    )
+
+    loaded = {r.resource_id: r for r in load_inputs(costs, inventory).matched}
+
+    assert loaded["r-1"].decommission_at == datetime(2028, 12, 31)
+    assert loaded["r-2"].decommission_at is None
 
 
 def test_tags_are_parsed_from_the_cost_export(tmp_path):

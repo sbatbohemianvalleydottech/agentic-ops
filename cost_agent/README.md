@@ -70,6 +70,31 @@ cluster you are about to delete, or buying a commitment for capacity you are abo
 halve. Each remedy subsumes the ones below it, so the highest match owns the dollars and
 the alternative is printed in the contested section.
 
+### Tell it what is already being retired
+
+The inventory takes an optional `decommission_at` per resource. It is a **stated
+commitment, never an inference**: the tool does not decide which of your platforms are
+obsolete.
+
+It matters more than it looks. Running an earlier version against a real estate filed a
+legacy platform with a published sunset date under *capacity management*, because
+utilisation was the only signal for "should this exist". Recoverable fraction 0.30 as
+capacity, 1.00 as elimination, on roughly a large share of spend: the same evidence producing
+answers about $2.5M apart, with no way for the tool to tell which was right. Worse, it
+would confidently have told a migration team to go and right-size a cluster they had
+already committed to deleting.
+
+Anything scheduled reports its horizon next to the figure:
+
+```
+Savings:      $2,196,000 to $3,660,000 (60.0% to 100.0%)
+Realised at:  2028-12-31, when the last of these workloads is scheduled to go
+```
+
+`a large share eliminable` and `a large share eliminable by end-2028` are different claims, and only the
+second is true. A date already in the past is reported separately, because still paying
+for something that should already be gone is a stronger finding than a planned retirement.
+
 ## The thresholds are the argument
 
 ```bash

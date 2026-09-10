@@ -4,6 +4,7 @@ An analysis whose drivers sum to more than the bill is dismissed on sight, so
 the totals are asserted exactly rather than within a tolerance.
 """
 
+from datetime import datetime
 from decimal import Decimal
 
 import pytest
@@ -58,6 +59,37 @@ def test_a_contested_resource_records_what_it_beat_and_why(analyse, make_resourc
     assert contest.assigned_to is RootCause.WORKLOAD_ELIMINATION
     assert RootCause.CAPACITY_MANAGEMENT in contest.also_matched
     assert contest.basis
+
+
+def test_a_scheduled_decommission_outranks_right_sizing(analyse, make_resource):
+    """Recommending someone right-size a cluster they have committed to deleting
+    wastes the migration team's quarter."""
+    analysis = analyse([
+        make_resource("r-legacy", "1000.00", utilisation_avg=0.38,
+                      decommission_at=datetime(2028, 12, 31)),
+        make_resource("r-other", "500.00", utilisation_avg=0.20),
+    ])
+
+    elimination = driver_for(analysis, RootCause.WORKLOAD_ELIMINATION)
+    capacity = driver_for(analysis, RootCause.CAPACITY_MANAGEMENT)
+    assert "r-legacy" in {f.resource_id for f in elimination.findings}
+    assert "r-legacy" not in {f.resource_id for f in capacity.findings}
+
+    contest = next(c for c in analysis.contested if c.resource_id == "r-legacy")
+    assert RootCause.CAPACITY_MANAGEMENT in contest.also_matched
+
+
+def test_a_scheduled_resource_that_is_also_stale_is_not_contested(
+    analyse, make_resource
+):
+    """Both are workload elimination, so there is nothing to choose between."""
+    analysis = analyse([
+        make_resource("r-both", "1000.00", kind="storage", attached=False,
+                      age_days=300, utilisation_avg=None,
+                      decommission_at=datetime(2028, 12, 31)),
+    ])
+
+    assert analysis.contested == ()
 
 
 def test_driver_totals_never_exceed_the_bill(analyse, make_resource):

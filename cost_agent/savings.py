@@ -38,7 +38,9 @@ WHAT_WOULD_CHANGE = {
 
 CONFIRMING_QUESTION = {
     RootCause.WORKLOAD_ELIMINATION: (
-        "Who owns these resources, and what breaks if they are deleted this quarter?"
+        "Who owns these resources, what breaks if they are deleted, and when does the "
+        "decommission actually land? A saving realised in two years at the price of "
+        "two years of migration effort may not be a saving at all."
     ),
     RootCause.RETENTION_LIFECYCLE: (
         "What is the retention obligation on this data, and who signs off on tiering it?"
@@ -82,12 +84,23 @@ def estimate_savings(
             return Decimal("0")
         return (amount / driver.annual_cost).quantize(PCT)
 
+    # The furthest date anything in this driver is scheduled to go away. Reported
+    # with the figure, because "eliminable" and "eliminable by end-2028" are
+    # different claims and quoting the first alone is the false precision the
+    # savings range exists to avoid.
+    horizons = [
+        finding.observed["decommission_at"]
+        for finding in driver.findings
+        if "decommission_at" in finding.observed
+    ]
+
     return replace(
         driver,
         savings_low=low,
         savings_high=high,
         savings_pct_low=pct(low),
         savings_pct_high=pct(high),
+        decommission_horizon=max(horizons) if horizons else None,
         what_would_change_confidence=WHAT_WOULD_CHANGE[driver.root_cause],
         confirming_question=CONFIRMING_QUESTION[driver.root_cause],
     )

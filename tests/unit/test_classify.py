@@ -6,6 +6,7 @@ intended.
 """
 
 from datetime import datetime
+from decimal import Decimal
 
 import pytest
 
@@ -146,6 +147,67 @@ def test_the_same_shape_classifies_identically_whatever_the_service_is_called(
     ) == rules_for(
         make_resource(service="some-service-nobody-has-heard-of", cloud="aws", **shape)
     )
+
+
+def test_a_future_decommission_date_is_a_workload_elimination_finding(
+    rules_for, make_resource
+):
+    """Stop paying for this, not make this cheaper. Right-sizing a cluster
+    somebody has committed to deleting wastes the migration team's quarter."""
+    assert Rule.SCHEDULED_DECOMMISSION in rules_for(
+        make_resource(decommission_at=datetime(2028, 12, 31))
+    )
+
+
+def test_a_passed_decommission_date_is_reported_distinctly(rules_for, make_resource):
+    """Still being billed for something that should already be gone is a stronger
+    finding than a planned retirement."""
+    rules = rules_for(make_resource(decommission_at=datetime(2026, 1, 1)))
+
+    assert Rule.OVERDUE_DECOMMISSION in rules
+    assert Rule.SCHEDULED_DECOMMISSION not in rules
+
+
+def test_past_or_future_is_measured_against_the_analysis_date_not_the_clock(
+    make_resource, thresholds
+):
+    from cost_agent.classify import classify
+    from cost_agent.inputs import Inputs
+
+    resource = make_resource(decommission_at=datetime(2027, 6, 1))
+
+    def rules_at(as_of):
+        findings = classify(
+            Inputs((resource,), (), resource.period_cost), thresholds, as_of
+        )
+        return {finding.rule for finding in findings}
+
+    assert Rule.SCHEDULED_DECOMMISSION in rules_at(datetime(2026, 9, 1))
+    assert Rule.OVERDUE_DECOMMISSION in rules_at(datetime(2028, 9, 1))
+
+
+def test_the_decommission_finding_records_the_date_and_days_remaining(
+    make_resource, thresholds, as_of
+):
+    from cost_agent.classify import classify
+    from cost_agent.inputs import Inputs
+
+    resource = make_resource(decommission_at=datetime(2026, 12, 1))
+    findings = classify(
+        Inputs((resource,), (), resource.period_cost), thresholds, as_of
+    )
+
+    finding = next(f for f in findings if f.rule is Rule.SCHEDULED_DECOMMISSION)
+    assert finding.observed["decommission_at"] == "2026-12-01"
+    assert finding.observed["days_remaining"] == 91
+    assert finding.recoverable_fraction == Decimal("1.00")
+
+
+def test_a_resource_with_no_decommission_date_is_unaffected(rules_for, make_resource):
+    rules = rules_for(make_resource())
+
+    assert Rule.SCHEDULED_DECOMMISSION not in rules
+    assert Rule.OVERDUE_DECOMMISSION not in rules
 
 
 def test_a_finding_carries_the_values_that_made_its_rule_fire(

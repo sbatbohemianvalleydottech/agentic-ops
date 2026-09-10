@@ -34,6 +34,15 @@ def _driver_block(index: int, driver: Driver) -> list[str]:
         f"resources, {len(driver.findings)} findings",
     ]
 
+    if driver.decommission_horizon:
+        # The saving is real and it is not this quarter's. Keeping the date next
+        # to the number stops the number travelling without it.
+        lines.insert(
+            6,
+            f"  Realised at:                {driver.decommission_horizon}, when the "
+            "last of these workloads is scheduled to go",
+        )
+
     if driver.single_resource:
         lines.append(
             "  NOTE:                       explains one resource only, so this is "

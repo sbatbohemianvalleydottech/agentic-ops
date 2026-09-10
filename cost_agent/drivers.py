@@ -53,6 +53,10 @@ class Driver:
     confidence: str = "unrated"
     what_would_change_confidence: str = ""
     confirming_question: str = ""
+    # The furthest decommission date across this driver's findings. Present only
+    # when something is actually scheduled, because a horizon nobody committed to
+    # would be a claim rather than a fact.
+    decommission_horizon: str | None = None
 
 
 @dataclass(frozen=True)

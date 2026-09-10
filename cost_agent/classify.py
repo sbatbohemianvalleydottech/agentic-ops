@@ -31,6 +31,8 @@ class RootCause(Enum):
 
 
 class Rule(Enum):
+    SCHEDULED_DECOMMISSION = "scheduled_decommission"
+    OVERDUE_DECOMMISSION = "overdue_decommission"
     STALE_UNATTACHED = "stale_unattached"
     COLD_ON_HOT_TIER = "cold_on_hot_tier"
     IDLE = "idle"
@@ -43,6 +45,8 @@ class Rule(Enum):
 
 
 ROOT_CAUSE_OF = {
+    Rule.SCHEDULED_DECOMMISSION: RootCause.WORKLOAD_ELIMINATION,
+    Rule.OVERDUE_DECOMMISSION: RootCause.WORKLOAD_ELIMINATION,
     Rule.STALE_UNATTACHED: RootCause.WORKLOAD_ELIMINATION,
     Rule.COLD_ON_HOT_TIER: RootCause.RETENTION_LIFECYCLE,
     Rule.IDLE: RootCause.CAPACITY_MANAGEMENT,
@@ -59,6 +63,10 @@ HOT_TIERS = {"standard", "hot", "premium"}
 # conservative: these feed the lower bound of a savings range that someone will
 # be asked to believe.
 RECOVERABLE = {
+    # The spend ends when the workload does. Realised at the horizon, not now,
+    # which is why the driver reports the date alongside the figure.
+    Rule.SCHEDULED_DECOMMISSION: Decimal("1.00"),
+    Rule.OVERDUE_DECOMMISSION: Decimal("1.00"),
     Rule.STALE_UNATTACHED: Decimal("1.00"),
     Rule.COLD_ON_HOT_TIER: Decimal("0.60"),
     Rule.IDLE: Decimal("0.80"),
@@ -99,6 +107,24 @@ def _classify_one(
     resource: Resource, thresholds: Thresholds, as_of: datetime
 ) -> list[Finding]:
     findings: list[Finding] = []
+
+    if resource.decommission_at is not None:
+        remaining = (resource.decommission_at - as_of).days
+        # Split deliberately. Still being billed for something that should already
+        # be gone is a stronger finding than a planned retirement, and one rule
+        # covering both would hide it inside the weaker case.
+        rule = (
+            Rule.SCHEDULED_DECOMMISSION if remaining >= 0 else Rule.OVERDUE_DECOMMISSION
+        )
+        defect_field = "days_remaining" if remaining >= 0 else "days_overdue"
+        findings.append(
+            _finding(
+                resource,
+                rule,
+                decommission_at=f"{resource.decommission_at:%Y-%m-%d}",
+                **{defect_field: abs(remaining)},
+            )
+        )
 
     if not resource.attached and resource.age_days > thresholds.stale_after_days:
         findings.append(

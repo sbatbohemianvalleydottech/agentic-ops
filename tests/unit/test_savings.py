@@ -89,6 +89,64 @@ def test_percentages_agree_with_the_amounts():
     ).quantize(Decimal("0.0001"))
 
 
+def elimination_driver(*findings) -> Driver:
+    return Driver(
+        root_cause=RootCause.WORKLOAD_ELIMINATION,
+        absent_practice="nothing decommissions retired workloads",
+        cloud="gcp",
+        findings=tuple(findings),
+        annual_cost=Decimal("10000.00"),
+        share_of_bill=Decimal("0.5"),
+        single_resource=False,
+    )
+
+
+def scheduled(resource_id, date) -> Finding:
+    return Finding(
+        resource_id=resource_id,
+        rule=Rule.SCHEDULED_DECOMMISSION,
+        observed={"decommission_at": date},
+        recoverable_fraction=Decimal("1.00"),
+    )
+
+
+def test_a_driver_with_scheduled_decommissions_reports_the_furthest_date():
+    """a large share eliminable and a large share eliminable by end-2028 are different claims,
+    and only the second is true."""
+    driver = estimate_savings(
+        elimination_driver(
+            scheduled("r-1", "2027-06-30"), scheduled("r-2", "2028-12-31")
+        ),
+        {"r-1": Decimal("6000.00"), "r-2": Decimal("4000.00")},
+        THRESHOLDS,
+    )
+
+    assert driver.decommission_horizon == "2028-12-31"
+
+
+def test_a_driver_with_no_scheduled_decommission_claims_no_horizon():
+    driver = estimate_savings(
+        driver_with(finding("r-1", Rule.UNDER_UTILISED, "0.30")),
+        {"r-1": Decimal("10000.00")},
+        THRESHOLDS,
+    )
+
+    assert driver.decommission_horizon is None
+
+
+def test_the_elimination_question_asks_about_timing_and_migration_cost():
+    """A saving realised in two years at the price of two years of migration
+    effort may not be a saving."""
+    driver = estimate_savings(
+        elimination_driver(scheduled("r-1", "2028-12-31")),
+        {"r-1": Decimal("10000.00")},
+        THRESHOLDS,
+    )
+
+    assert "when" in driver.confirming_question.lower()
+    assert "migration" in driver.confirming_question.lower()
+
+
 def test_a_driver_carries_a_confirming_question():
     """The tool cannot see contracts or intent, and the question is where the
     analysis honestly stops."""

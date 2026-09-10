@@ -35,6 +35,9 @@ class Resource:
     age_days: int = 0
     attached: bool = True
     commitment_covered: bool = False
+    # A stated organisational commitment, never an inference. The tool does not
+    # decide which platforms are obsolete; somebody tells it.
+    decommission_at: datetime | None = None
 
 
 @dataclass(frozen=True)
@@ -102,6 +105,7 @@ def load_inputs(cost_export_path: Path, inventory_path: Path) -> Inputs:
                 age_days=int(item.get("age_days", 0)),
                 attached=bool(item.get("attached", True)),
                 commitment_covered=bool(item.get("commitment_covered", False)),
+                decommission_at=_when(item.get("decommission_at")),
             )
         )
 

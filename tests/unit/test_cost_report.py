@@ -110,6 +110,27 @@ def test_the_annualisation_multiplier_is_stated_alongside_the_figure(
     assert str(thresholds.annualisation_multiplier) in report
 
 
+def test_the_decommission_horizon_is_stated_with_the_savings(report_for, make_resource):
+    """Stops the figure being quoted without the date it depends on."""
+    from datetime import datetime
+
+    report = report_for([
+        make_resource("r-legacy-a", "5000.00", utilisation_avg=0.38,
+                      decommission_at=datetime(2028, 12, 31)),
+        make_resource("r-legacy-b", "4000.00", utilisation_avg=0.40,
+                      decommission_at=datetime(2027, 6, 30)),
+    ])
+
+    assert "2028-12-31" in report
+    assert "realised at" in report.lower() or "horizon" in report.lower()
+
+
+def test_no_horizon_is_claimed_when_nothing_is_scheduled(report_for, make_resource):
+    report = report_for(two_underused(make_resource))
+
+    assert "2028" not in report
+
+
 def test_a_single_resource_driver_is_flagged_in_the_output(report_for, make_resource):
     report = report_for([
         make_resource("r-alone", "1000.00", kind="storage", tier="standard",
