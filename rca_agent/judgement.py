@@ -98,6 +98,7 @@ def assess_judgement(
     raters: list[Rater],
     judge: Rater,
     ledger,
+    progress=None,
 ) -> list[DimensionGrade]:
     evidence = _evidence(rca)
     grades = []
@@ -118,6 +119,7 @@ def assess_judgement(
             judge=judge,
             ledger=ledger,
             caller=f"rca_agent:{rca.rca_id}",
+            progress=progress,
         )
 
         halted = result.decision is not Decision.PROCEED

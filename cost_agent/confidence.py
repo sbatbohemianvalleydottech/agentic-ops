@@ -58,6 +58,7 @@ def rate_confidence(
     judge: Rater,
     ledger,
     as_of: datetime,
+    progress=None,
 ) -> Driver:
     result = run_decision(
         rubric=CONFIDENCE_RUBRIC,
@@ -66,6 +67,7 @@ def rate_confidence(
         judge=judge,
         ledger=ledger,
         caller="cost_agent",
+        progress=progress,
     )
 
     if result.decision is not Decision.PROCEED:

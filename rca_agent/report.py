@@ -10,7 +10,11 @@ from .judgement import DimensionGrade
 from .structure import Review
 
 
-def render_review(review: Review, grades: list[DimensionGrade] | None = None) -> str:
+def render_review(
+    review: Review,
+    grades: list[DimensionGrade] | None = None,
+    models: tuple[str, str, str] | None = None,
+) -> str:
     lines = [f"RCA {review.rca_id}", ""]
 
     if not review.defects:
@@ -31,6 +35,14 @@ def render_review(review: Review, grades: list[DimensionGrade] | None = None) ->
             "  NEEDS HUMAN JUDGEMENT: this review produced no action items at all.",
             "  Either the incident was trivial or it was never really reviewed, and",
             "  no automated check can tell you which.",
+            "",
+        ]
+
+    if models:
+        # The first question an audit asks about an automated judgement is what
+        # produced it. The ledger knows; the report is what people read.
+        lines += [
+            f"  Assessed by {models[0]} and {models[1]}, judged by {models[2]}",
             "",
         ]
 

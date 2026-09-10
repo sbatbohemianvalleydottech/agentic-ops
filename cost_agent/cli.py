@@ -51,6 +51,7 @@ def main(argv: list[str] | None = None) -> int:
     load_env()
     args = build_parser().parse_args(argv)
 
+    models = None
     analysis = analyse(
         args.costs,
         args.inventory,
@@ -77,26 +78,41 @@ def main(argv: list[str] | None = None) -> int:
             print('litellm not installed. pip install -e ".[providers]"', file=sys.stderr)
             return 1
 
+        from ensemble.preflight import preflight
+        from ensemble.progress import StderrProgress
+
+        rater_a = setting("RATER_A", "anthropic/claude-opus-5")
+        rater_b = setting("RATER_B", "gemini/gemini-3.8-flash")
+        judge_model = setting("JUDGE", "anthropic/claude-sonnet-5")
+
+        # One cheap call each before the expensive pass.
+        check = preflight([rater_a, rater_b, judge_model])
+        print(check.render(), file=sys.stderr)
+        if not check.ok:
+            print("Aborting before the run. Fix the above.", file=sys.stderr)
+            return 1
+
         provider = LiteLLMProvider()
         ledger = Ledger(Path(".ledger/calls.jsonl"))
+        progress = StderrProgress()
+        models = (rater_a, rater_b, judge_model)
         analysis = replace(
             analysis,
             drivers=tuple(
                 rate_confidence(
                     driver,
                     raters=[
-                        Rater(provider, setting("RATER_A", "anthropic/claude-opus-5")),
-                        Rater(provider, setting("RATER_B", "gemini/gemini-3.8-flash")),
+                        Rater(provider, rater_a),
+                        Rater(provider, rater_b),
                     ],
-                    judge=Rater(
-                        provider, setting("JUDGE", "anthropic/claude-sonnet-5")
-                    ),
+                    judge=Rater(provider, judge_model),
                     ledger=ledger,
                     as_of=args.as_of,
+                    progress=progress,
                 )
                 for driver in analysis.drivers
             ),
         )
 
-    print(render_report(analysis))
+    print(render_report(analysis, models=models))
     return 0

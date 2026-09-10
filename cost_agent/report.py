@@ -52,7 +52,9 @@ def _driver_block(index: int, driver: Driver) -> list[str]:
     return lines + [""]
 
 
-def render_report(analysis: Analysis) -> str:
+def render_report(
+    analysis: Analysis, models: tuple[str, str, str] | None = None
+) -> str:
     lines = [
         "COST DRIVER ANALYSIS",
         "",
@@ -63,6 +65,14 @@ def render_report(analysis: Analysis) -> str:
         "=" * 72,
         "",
     ]
+
+    if models:
+        # What produced a confidence rating is the first thing an audit asks.
+        lines += [
+            f"Confidence assessed by {models[0]} and {models[1]},",
+            f"judged by {models[2]}.",
+            "",
+        ]
 
     for index, driver in enumerate(analysis.drivers, start=1):
         lines += _driver_block(index, driver)

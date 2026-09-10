@@ -43,13 +43,19 @@ JUDGE_SCHEMA = {
     "additionalProperties": False,
 }
 
-_RATER_PROMPT = """You are grading against a fixed rubric.
+# Evidence first, criteria last. The evidence is identical across every
+# dimension and every rater; the criteria change per dimension. Stable content
+# has to physically precede volatile content for a cache breakpoint to have a
+# prefix to sit on. No cache_control is set yet, because at 308 evidence tokens
+# we are below the 512-token minimum on Opus 5 and a marker would silently do
+# nothing. See specs/007-operable-runs/spec.md.
+_RATER_PROMPT = """EVIDENCE about {subject}:
+{evidence}
+
+You are grading the evidence above against a fixed rubric.
 
 RUBRIC: {criteria}
 PERMITTED GRADES: {scale}
-
-EVIDENCE about {subject}:
-{evidence}
 
 Assign exactly one grade from the permitted list. Every part of your reasoning
 must cite one of the evidence references above. If the evidence does not support
@@ -57,14 +63,14 @@ a claim, leave the claim out.
 
 Reply with JSON only: {{"grade": "...", "reasoning": "..."}}"""
 
-_JUDGE_PROMPT = """You are assessing whether a proposed grade is justified.
+_JUDGE_PROMPT = """EVIDENCE about {subject}:
+{evidence}
+
+You are assessing whether a proposed grade is justified.
 
 RUBRIC: {criteria}
 PERMITTED GRADES: {scale}
 PROPOSED GRADE: {grade}
-
-EVIDENCE about {subject}:
-{evidence}
 
 Does this evidence support this grade under this rubric? Judge the grade on its
 merits. Do not assume it is correct because it was proposed.

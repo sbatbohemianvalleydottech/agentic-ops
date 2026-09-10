@@ -5,6 +5,7 @@ from dataclasses import dataclass, replace
 from uuid import uuid4
 
 from .gate import GateResult, evaluate_gate
+from .progress import Progress, SilentProgress
 from .providers import Call, Provider
 from .types import EvidenceBundle, Rubric
 
@@ -34,6 +35,7 @@ def run_decision(
     ledger,
     caller: str,
     decision_id: str | None = None,
+    progress: Progress | None = None,
 ) -> GateResult:
     """Run one gated decision.
 
@@ -50,6 +52,7 @@ def run_decision(
     puts the next move with a human.
     """
     decision_id = decision_id or uuid4().hex
+    progress = progress or SilentProgress()
     failures: list[Failure] = []
 
     def meter(model: str, role: str, call: Call) -> None:
@@ -66,6 +69,10 @@ def run_decision(
             failures.append(
                 Failure(model=model, role=role, reason=call.error or "no reason given")
             )
+        progress.step(
+            f"{rubric.name}: {role} {model}{' FAILED' if call.failed else ''}",
+            call.usage.cost,
+        )
 
     with ThreadPoolExecutor(max_workers=len(raters)) as pool:
         calls = list(

@@ -50,6 +50,24 @@ def test_redaction_leaves_the_useful_part_of_a_message():
     assert redact(message) == message
 
 
+def test_prompts_put_the_stable_evidence_before_the_varying_criteria():
+    """Not caching. Removing the reason caching cannot be switched on later.
+
+    The evidence is identical across every dimension and every rater; the
+    criteria change per dimension. Stable content has to physically precede
+    volatile content or a cache breakpoint has no prefix to sit on. No
+    cache_control is set: at 308 evidence tokens we are under the 512-token
+    minimum on Opus 5 and a marker would silently do nothing.
+    """
+    pytest.importorskip("litellm")
+    from ensemble.providers.litellm import _JUDGE_PROMPT, _RATER_PROMPT
+
+    for prompt in (_RATER_PROMPT, _JUDGE_PROMPT):
+        assert prompt.index("{evidence}") < prompt.index("{criteria}")
+
+    assert "cache_control" not in _RATER_PROMPT
+
+
 class _Response:
     """Minimal stand-in for a litellm response."""
 
