@@ -51,7 +51,7 @@ result = run_decision(
     evidence=EvidenceBundle(subject="engineer-07", records=(...,)),
     raters=[
         Rater(provider, "anthropic/claude-opus-5"),
-        Rater(provider, "gemini/gemini-2.5-pro"),
+        Rater(provider, "gemini/gemini-3.8-flash"),
     ],
     judge=Rater(provider, "anthropic/claude-sonnet-5"),
     ledger=Ledger(Path(".ledger/calls.jsonl")),

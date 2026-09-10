@@ -5,7 +5,7 @@ from dataclasses import dataclass, replace
 from uuid import uuid4
 
 from .gate import GateResult, evaluate_gate
-from .providers import Provider
+from .providers import Call, Provider
 from .types import EvidenceBundle, Rubric
 
 
@@ -13,6 +13,16 @@ from .types import EvidenceBundle, Rubric
 class Rater:
     provider: Provider
     model: str
+
+
+@dataclass(frozen=True)
+class Failure:
+    """A call that produced no verdict, and why. Travels into the gate result so
+    a halt can say what actually went wrong rather than blaming disagreement."""
+
+    model: str
+    role: str
+    reason: str
 
 
 def run_decision(
@@ -40,6 +50,22 @@ def run_decision(
     puts the next move with a human.
     """
     decision_id = decision_id or uuid4().hex
+    failures: list[Failure] = []
+
+    def meter(model: str, role: str, call: Call) -> None:
+        ledger.record(
+            decision_id=decision_id,
+            caller=caller,
+            model=model,
+            role=role,
+            input_tokens=call.usage.input_tokens,
+            output_tokens=call.usage.output_tokens,
+            cost=call.usage.cost,
+        )
+        if call.failed:
+            failures.append(
+                Failure(model=model, role=role, reason=call.error or "no reason given")
+            )
 
     with ThreadPoolExecutor(max_workers=len(raters)) as pool:
         calls = list(
@@ -50,17 +76,9 @@ def run_decision(
         )
 
     verdicts = []
-    for rater, (verdict, usage) in zip(raters, calls, strict=True):
-        ledger.record(
-            decision_id=decision_id,
-            caller=caller,
-            model=rater.model,
-            role="rater",
-            input_tokens=usage.input_tokens,
-            output_tokens=usage.output_tokens,
-            cost=usage.cost,
-        )
-        verdicts.append(verdict)
+    for rater, call in zip(raters, calls, strict=True):
+        meter(rater.model, "rater", call)
+        verdicts.append(call.verdict)
 
     # Built before agreement is inspected. The first verdict present is the
     # candidate; nothing here looks at whether the grades match.
@@ -68,18 +86,9 @@ def run_decision(
 
     judge_verdict = None
     if candidate is not None:
-        judge_verdict, usage = judge.provider.judge(
-            rubric, evidence, candidate, judge.model
-        )
-        ledger.record(
-            decision_id=decision_id,
-            caller=caller,
-            model=judge.model,
-            role="judge",
-            input_tokens=usage.input_tokens,
-            output_tokens=usage.output_tokens,
-            cost=usage.cost,
-        )
+        judge_call = judge.provider.judge(rubric, evidence, candidate, judge.model)
+        meter(judge.model, "judge", judge_call)
+        judge_verdict = judge_call.verdict
 
     result = evaluate_gate(verdicts, judge_verdict, rubric)
-    return replace(result, decision_id=decision_id)
+    return replace(result, decision_id=decision_id, failures=tuple(failures))

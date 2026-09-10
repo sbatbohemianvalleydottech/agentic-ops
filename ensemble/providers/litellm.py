@@ -6,16 +6,23 @@ it. Importing this module requires litellm installed; importing `ensemble` does
 not. Install with `pip install -e ".[providers]"`.
 
 Model strings are LiteLLM's provider-prefixed form, for example
-`anthropic/claude-opus-5` or `gemini/gemini-2.5-pro`. Nothing here hardcodes a
+`anthropic/claude-opus-5` or `gemini/gemini-3.8-flash`. Nothing here hardcodes a
 model, so changing provider is configuration.
 """
 
 import json
+import os
 
+import litellm
 from litellm import completion, completion_cost, supports_response_schema
 
 from ..types import EvidenceBundle, JudgeVerdict, RaterVerdict, Rubric
-from . import Usage
+from . import Call, Usage, redact
+
+# The vendor prints a banner and a support link on every error. Suppressed so a
+# halt report is legible. The error itself is not suppressed; it is carried
+# deliberately on the Call instead of being shouted at stderr.
+litellm.suppress_debug_info = True
 
 # Schemas rather than a bare json_object. LiteLLM passes these natively where the
 # provider supports them and falls back to a tool call where it does not, so the
@@ -73,7 +80,14 @@ def _render(evidence: EvidenceBundle) -> str:
 
 
 def _response_format(model: str, schema: dict, name: str) -> dict:
-    if supports_response_schema(model=model):
+    try:
+        supported = supports_response_schema(model=model)
+    except Exception:
+        # An unrecognised model is not a reason to fail the call. Fall back to
+        # plain JSON and let the request itself decide whether the model exists.
+        supported = False
+
+    if supported:
         return {
             "type": "json_schema",
             "json_schema": {"name": name, "schema": schema, "strict": True},
@@ -81,48 +95,70 @@ def _response_format(model: str, schema: dict, name: str) -> dict:
     return {"type": "json_object"}
 
 
-def _cost(response) -> float:
-    """LiteLLM already prices every call and stashes the result on the response.
+def _extra_headers(model: str) -> dict | None:
+    """An org-scoped Anthropic key needs a workspace on every request. Supplying
+    it here means an existing key works without being recreated."""
+    workspace = os.environ.get("ANTHROPIC_WORKSPACE_ID")
+    if workspace and model.startswith("anthropic/"):
+        return {"anthropic-workspace-id": workspace}
+    return None
 
-    Preferring that over recomputing with `completion_cost` avoids a second pass
-    over the model tables and, more usefully, picks up a cost the provider
-    reported itself, which the recomputation would replace with an estimate.
+
+def _priced(response) -> Usage:
+    """Usage for a call that already succeeded.
+
+    Deliberately outside the request's error handling. Cost is bookkeeping, and
+    a model that answered correctly but has no published price must not have its
+    verdict discarded over it. That is fabrication in the opposite direction:
+    the system looking broken while working.
     """
-    hidden = getattr(response, "_hidden_params", None) or {}
-    reported = hidden.get("response_cost")
-    if reported is not None:
-        return float(reported)
-    return float(completion_cost(completion_response=response))
-
-
-def _call(model: str, prompt: str, schema: dict, name: str) -> tuple[dict | None, Usage]:
-    """One model call. Any failure returns no payload rather than a default."""
     try:
-        response = completion(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-            response_format=_response_format(model, schema, name),
+        hidden = getattr(response, "_hidden_params", None) or {}
+        reported = hidden.get("response_cost")
+        cost = (
+            float(reported)
+            if reported is not None
+            else float(completion_cost(completion_response=response))
         )
-        payload = json.loads(response.choices[0].message.content)
-        usage = Usage(
-            input_tokens=response.usage.prompt_tokens,
-            output_tokens=response.usage.completion_tokens,
-            cost=_cost(response),
-        )
-        return payload, usage
     except Exception:
-        # Deliberately broad. A provider outage, a rate limit, a malformed
-        # response and a JSON parse failure all mean the same thing here: there
-        # is no verdict. Inventing one would be the failure this repo exists to
-        # prevent, so the absence is passed up and the gate halts.
-        return None, Usage()
+        cost = 0.0
+
+    return Usage(
+        input_tokens=response.usage.prompt_tokens,
+        output_tokens=response.usage.completion_tokens,
+        cost=cost,
+    )
+
+
+def _call(
+    model: str, prompt: str, schema: dict, name: str
+) -> tuple[dict | None, Usage, str | None]:
+    """One model call. A failure returns no payload and says why."""
+    kwargs = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "response_format": _response_format(model, schema, name),
+    }
+    headers = _extra_headers(model)
+    if headers:
+        kwargs["extra_headers"] = headers
+
+    try:
+        response = completion(**kwargs)
+        payload = json.loads(response.choices[0].message.content)
+    except Exception as error:
+        # Deliberately broad. A provider outage, a rate limit, a dead model, an
+        # unfunded account and a malformed reply all mean the same thing here:
+        # there is no verdict. What changed after the first live run is that the
+        # reason travels with the absence instead of being thrown away.
+        return None, Usage(), redact(f"{type(error).__name__}: {' '.join(str(error).split())}")
+
+    return payload, _priced(response), None
 
 
 class LiteLLMProvider:
-    def grade(
-        self, rubric: Rubric, evidence: EvidenceBundle, model: str
-    ) -> tuple[RaterVerdict | None, Usage]:
-        payload, usage = _call(
+    def grade(self, rubric: Rubric, evidence: EvidenceBundle, model: str) -> Call:
+        payload, usage, error = _call(
             model,
             _RATER_PROMPT.format(
                 criteria=rubric.criteria,
@@ -133,24 +169,30 @@ class LiteLLMProvider:
             RATER_SCHEMA,
             "rater_verdict",
         )
-        if payload is None or "grade" not in payload:
-            return None, usage
+        if payload is None:
+            return Call(verdict=None, usage=usage, error=error)
+        if "grade" not in payload:
+            return Call(
+                verdict=None,
+                usage=usage,
+                error=f"reply had no 'grade' key: {sorted(payload)}",
+            )
 
         # The grade is passed through unchecked. Validating it against the scale
         # is the gate's job, and coercing it here would hide a broken prompt.
-        return (
-            RaterVerdict(
+        return Call(
+            verdict=RaterVerdict(
                 rater=model,
                 grade=str(payload["grade"]),
                 reasoning=str(payload.get("reasoning", "")),
             ),
-            usage,
+            usage=usage,
         )
 
     def judge(
         self, rubric: Rubric, evidence: EvidenceBundle, grade: str, model: str
-    ) -> tuple[JudgeVerdict | None, Usage]:
-        payload, usage = _call(
+    ) -> Call:
+        payload, usage, error = _call(
             model,
             _JUDGE_PROMPT.format(
                 criteria=rubric.criteria,
@@ -162,13 +204,19 @@ class LiteLLMProvider:
             JUDGE_SCHEMA,
             "judge_verdict",
         )
-        if payload is None or "justified" not in payload:
-            return None, usage
+        if payload is None:
+            return Call(verdict=None, usage=usage, error=error)
+        if "justified" not in payload:
+            return Call(
+                verdict=None,
+                usage=usage,
+                error=f"reply had no 'justified' key: {sorted(payload)}",
+            )
 
-        return (
-            JudgeVerdict(
+        return Call(
+            verdict=JudgeVerdict(
                 justified=bool(payload["justified"]),
                 reasoning=str(payload.get("reasoning", "")),
             ),
-            usage,
+            usage=usage,
         )

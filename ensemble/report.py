@@ -38,6 +38,18 @@ def format_halt_report(result: GateResult) -> str:
     for verdict in result.raters:
         lines += [f"  {verdict.rater} -> {verdict.grade}", f"    {verdict.reasoning}", ""]
 
+    if result.failures:
+        # The reason the run produced nothing, rather than leaving the operator
+        # to infer it from vendor output. This section exists because the first
+        # live run reported disagreement when in fact every call had errored.
+        lines += ["", "Calls that produced no verdict:"]
+        for failure in result.failures:
+            lines += [
+                f"  {failure.role} {failure.model}",
+                f"    {failure.reason}",
+            ]
+        lines.append("")
+
     if result.judge is None:
         lines.append("Judge: no verdict returned.")
     else:

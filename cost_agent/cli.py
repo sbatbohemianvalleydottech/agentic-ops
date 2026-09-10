@@ -86,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
                     driver,
                     raters=[
                         Rater(provider, os.environ.get("RATER_A", "anthropic/claude-opus-5")),
-                        Rater(provider, os.environ.get("RATER_B", "gemini/gemini-2.5-pro")),
+                        Rater(provider, os.environ.get("RATER_B", "gemini/gemini-3.8-flash")),
                     ],
                     judge=Rater(
                         provider, os.environ.get("JUDGE", "anthropic/claude-sonnet-5")

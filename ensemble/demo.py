@@ -10,7 +10,7 @@ them. Then:
 
 Models are overridable, because nothing here should hardcode a vendor:
 
-    RATER_A=anthropic/claude-opus-5 RATER_B=gemini/gemini-2.5-pro python -m ensemble.demo
+    RATER_A=anthropic/claude-opus-5 RATER_B=gemini/gemini-3.8-flash python -m ensemble.demo
 """
 
 import os
@@ -30,7 +30,7 @@ from .types import EvidenceBundle, EvidenceRecord, Rubric
 # because a module-level read happens at import time and would silently ignore
 # anything the file sets.
 DEFAULT_RATER_A = "anthropic/claude-opus-5"
-DEFAULT_RATER_B = "gemini/gemini-2.5-pro"
+DEFAULT_RATER_B = "gemini/gemini-3.8-flash"
 DEFAULT_JUDGE = "anthropic/claude-sonnet-5"
 
 RUBRIC = Rubric(

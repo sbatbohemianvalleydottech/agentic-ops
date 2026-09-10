@@ -10,7 +10,7 @@ from datetime import datetime
 
 import pytest
 
-from ensemble.providers import Usage
+from ensemble.providers import Call, Usage
 from ensemble.types import JudgeVerdict, RaterVerdict
 from rca_agent.judgement import assess_judgement
 from rca_agent.rubric import load_rubric
@@ -30,19 +30,19 @@ class ByDimensionProvider:
 
     def grade(self, rubric, evidence, model):
         self.calls.append((rubric.name, model))
-        return (
-            RaterVerdict(
+        return Call(
+            verdict=RaterVerdict(
                 rater=model, grade=self.grades[(rubric.name, model)], reasoning="because"
             ),
-            Usage(input_tokens=800, output_tokens=200, cost=0.004),
+            usage=Usage(input_tokens=800, output_tokens=200, cost=0.004),
         )
 
     def judge(self, rubric, evidence, grade, model):
-        return (
-            JudgeVerdict(
+        return Call(
+            verdict=JudgeVerdict(
                 justified=self.justified.get(rubric.name, True), reasoning="judged"
             ),
-            Usage(input_tokens=600, output_tokens=150, cost=0.002),
+            usage=Usage(input_tokens=600, output_tokens=150, cost=0.002),
         )
 
 

@@ -71,6 +71,34 @@ def test_a_provider_error_yields_an_absent_verdict_rather_than_a_fabricated_one(
     assert result.decision is Decision.HALT_INCOMPLETE
 
 
+def test_a_failed_call_carries_its_model_and_reason_into_the_result(
+    bands, evidence, ledger
+):
+    """The first live run halted and blamed disagreement when every call had
+    errored. The reason was known and discarded."""
+    provider = FakeProvider(
+        grades={"model-a": "meeting", "model-b": "meeting"},
+        fail_models=frozenset({"model-b"}),
+        fail_reason="BadRequestError: credit balance is too low",
+    )
+
+    result = decide(provider, bands, evidence, ledger)
+
+    assert result.decision is Decision.HALT_INCOMPLETE
+    failure = next(f for f in result.failures if f.model == "model-b")
+    assert failure.role == "rater"
+    assert "credit balance is too low" in failure.reason
+
+
+def test_a_healthy_decision_records_no_failures(bands, evidence, ledger):
+    provider = FakeProvider(grades={"model-a": "meeting", "model-b": "exceeding"})
+
+    result = decide(provider, bands, evidence, ledger)
+
+    assert result.decision is Decision.HALT_DISAGREEMENT
+    assert result.failures == ()
+
+
 def test_raters_are_invoked_concurrently(bands, evidence, ledger):
     """A barrier both raters must reach. If they run serially it times out."""
     provider = FakeProvider(

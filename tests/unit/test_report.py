@@ -2,6 +2,8 @@
 so anything summarised away is information they needed and no longer have.
 """
 
+from dataclasses import replace
+
 from ensemble.gate import evaluate_gate
 from ensemble.report import format_halt_report
 from ensemble.types import JudgeVerdict
@@ -54,6 +56,45 @@ def test_the_report_names_the_halt_condition(bands, make_rater, satisfied_judge)
     )
 
     assert "halt_disagreement" in format_halt_report(result).lower()
+
+
+def test_the_report_names_a_failed_call_and_what_the_provider_said(
+    bands, make_rater, satisfied_judge
+):
+    """An operator seeing a halt must be able to name the cause without reading
+    vendor output or re-running anything."""
+    from ensemble.orchestrator import Failure
+
+    result = evaluate_gate(
+        [make_rater("claude", "meeting"), None], satisfied_judge, bands
+    )
+    result = replace(
+        result,
+        failures=(
+            Failure(
+                model="gemini/gemini-2.5-pro",
+                role="rater",
+                reason="NotFoundError: model is no longer available to new users",
+            ),
+        ),
+    )
+
+    report = format_halt_report(result)
+
+    assert "gemini/gemini-2.5-pro" in report
+    assert "no longer available to new users" in report
+
+
+def test_a_disagreement_report_mentions_no_failure(bands, make_rater, satisfied_judge):
+    """Disagreement halts must read exactly as they did before failures were
+    reported at all."""
+    result = evaluate_gate(
+        [make_rater("claude", "meeting"), make_rater("gemini", "exceeding")],
+        satisfied_judge,
+        bands,
+    )
+
+    assert "produced no verdict" not in format_halt_report(result)
 
 
 def test_a_long_rater_position_is_never_truncated(bands, make_rater, satisfied_judge):

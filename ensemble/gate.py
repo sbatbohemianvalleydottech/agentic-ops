@@ -21,6 +21,9 @@ class GateResult:
     # Set by the orchestrator, never by the gate. Keeping id generation out of
     # evaluate_gate is what lets it stay pure and deterministic.
     decision_id: str | None = None
+    # Calls that produced no verdict, and why. Empty on a pure disagreement, so
+    # a report can tell "they disagreed" apart from "nothing answered".
+    failures: tuple = ()
 
 
 def evaluate_gate(
