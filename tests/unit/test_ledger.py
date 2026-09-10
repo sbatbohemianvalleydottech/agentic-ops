@@ -48,6 +48,35 @@ def test_the_cost_of_one_decision_can_be_retrieved_afterwards(tmp_path):
     assert led.cost_of("d2") == pytest.approx(0.0045)
 
 
+def test_a_record_says_which_rubric_the_decision_assessed(tmp_path):
+    """"What a decision cost" is unanswerable per dimension without it. Three
+    dimensions of one document produce three decisions, and nothing in the row
+    said which was which, so the only way to tell them apart was row order.
+    """
+    path = tmp_path / "calls.jsonl"
+    led = Ledger(path)
+
+    led.record(
+        decision_id="d1", caller="rca_agent:rca-hollow", model="claude-opus-5",
+        role="rater", input_tokens=858, output_tokens=1017, cost=0.0297,
+        rubric="no_alternate_reality",
+    )
+
+    assert json.loads(path.read_text())["rubric"] == "no_alternate_reality"
+
+
+def test_the_rubric_is_optional_so_older_rows_still_parse(tmp_path):
+    """Append-only means rows written before this field exists are permanent."""
+    path = tmp_path / "calls.jsonl"
+    Ledger(path).record(
+        decision_id="d1", caller="c", model="m", role="rater",
+        input_tokens=1, output_tokens=1, cost=0.01,
+    )
+
+    assert json.loads(path.read_text())["rubric"] is None
+    assert Ledger(path).cost_of("d1") == pytest.approx(0.01)
+
+
 def test_an_unknown_reader_tolerates_fields_it_does_not_recognise(tmp_path):
     """The record has to be able to grow without breaking existing consumers."""
     path = tmp_path / "calls.jsonl"
