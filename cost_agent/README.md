@@ -122,7 +122,7 @@ most credible thing in the output.
 ## Confidence, optional
 
 ```bash
-export ANTHROPIC_API_KEY=... GEMINI_API_KEY=...
+cp .env.example .env    # keys go here, or export them; an export always wins
 .venv/bin/python -m cost_agent --costs ... --inventory ... --confidence
 ```
 
@@ -131,7 +131,12 @@ from different providers, plus a judge that never learns whether they agreed. A 
 marks the driver `NEEDS_REVIEW` rather than settling on "medium", because an averaged
 confidence is a fabricated agreement wearing a number.
 
-Spend lands in `.ledger/calls.jsonl`.
+Every model is probed with one minimal call first, so a dead model or an unfunded
+account costs a third of a cent to find rather than a full run. `--check` does only
+that and stops. Progress goes to stderr with a running cost; the report stays on stdout.
+
+The report names the two assessors and the judge, because what produced a rating is the
+first thing an audit asks. Spend lands in `.ledger/calls.jsonl`.
 
 ## Nothing is silently dropped
 

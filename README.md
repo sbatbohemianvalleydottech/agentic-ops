@@ -41,7 +41,7 @@ covered without anyone remembering.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/python -m pytest                    # 158 tests, ~0.2s
+.venv/bin/python -m pytest                    # 187 tests, ~1.5s
 
 .venv/bin/python -m cost_agent \
   --costs cost_agent/fixtures/estate_a/costs.csv \
@@ -72,10 +72,21 @@ This is local convenience, **not a secrets management strategy**, and nothing he
 be treated as one.
 
 ```bash
+.venv/bin/python -m rca_agent ... --check    # probes every model, ~$0.0003, no work done
+```
+
+`--check` sends one minimal call per configured model and reports what came back. It also
+runs automatically before any paid pass, so a dead model or an unfunded account costs a
+third of a cent to discover instead of a full run.
+
+```bash
 .venv/bin/python -m ensemble.demo                              # ~3 calls, a few cents
 .venv/bin/python -m cost_agent ... --confidence
 .venv/bin/python -m rca_agent  ... --judgement
 ```
+
+Paid passes print progress to stderr with a running cost, so a run that is working and a
+run quietly burning money do not look identical. Redirect stdout and the report stays clean.
 
 ## How it was built
 
@@ -95,7 +106,12 @@ utilisation was the only signal it had for "should this exist". That is written 
 
 - **Built in one week**, for a project. Not production-tested.
 - **AI-built on synthetic data, human reviewed.** Stated plainly rather than implied.
-- **No live model call has ever been made from this repository.** Everything is tested
-  against a deterministic fake provider, which is deliberate, but "tested offline" and
-  "verified end to end" are different claims and are not blurred here.
+- **The test suite has never made a live model call**, and the paid paths have. Every test
+  runs against a deterministic fake provider; the judgement and confidence passes have been
+  run for real against Anthropic and Google. "Tested offline" and "verified end to end" are
+  different claims, so both are stated rather than one standing in for the other.
+- **The first live run took four attempts to get an answer**: a retired model, a
+  workspace-scoped key, an unfunded account, and an empty value in `.env` that a library
+  loaded behind us. Each cost a full run to find. That is why `--check` exists, and it is a
+  fair description of how much of agentic infrastructure is credentials rather than models.
 - All fixtures are synthetic. No real estate, incident or employee data is present.

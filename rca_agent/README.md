@@ -130,9 +130,14 @@ gets ignored.
 ## The judgement pass
 
 ```bash
-export ANTHROPIC_API_KEY=... GEMINI_API_KEY=...
+cp .env.example .env    # keys go here, or export them; an export always wins
+.venv/bin/python -m rca_agent --corpus rca_agent/fixtures/corpus --check
 .venv/bin/python -m rca_agent --corpus rca_agent/fixtures/corpus --judgement
 ```
+
+`--check` probes every configured model for a third of a cent and stops. The judgement
+pass runs it first anyway, then prints progress to stderr with a running cost, and names
+the assessors and the judge in the report.
 
 Watch `rca-hollow`. It is the case where the structural checks are silent and the
 judgement layer is the only thing between a fluent document and a repeat incident.
