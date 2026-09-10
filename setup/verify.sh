@@ -23,7 +23,7 @@ ref=${2:-}
 mkdir -p "$clean"
 clean=$(cd "$clean" && pwd)
 [ ! -e "$clean/settings.json" ] || { echo "$clean is not empty: it has a settings.json" >&2; exit 2; }
-start_state=$(ls -A "$clean" | tr '\n' ' ')
+start_state=$(ls -A "$clean" | paste -sd ' ' -)
 
 # With CLAUDE_CONFIG_DIR set, Claude Code keeps .claude.json inside that directory. Unset,
 # it keeps it at ~/.claude.json. So the default reference is reached by unsetting the
@@ -62,7 +62,7 @@ steps=("$work"/step-*.sh)
 [ -e "$work/check.sh" ] || { echo "No check block in $readme" >&2; exit 1; }
 
 echo "setup/verify.sh, $(date -u +%Y-%m-%dT%H:%M:%SZ), Claude Code $(claude --version | cut -d' ' -f1)"
-echo "document:      $readme"
+echo "document:      ${readme#"$PWD"/}"
 echo "empty profile: $clean, holding at start: ${start_state:-nothing}"
 echo "reference:     $ref_name"
 echo
@@ -181,5 +181,5 @@ fi
 
 say NOTE "not compared: history, transcripts, memory, caches and the login. They belong to the machine, not the configuration"
 echo
-if [ "$fails" -eq 0 ]; then echo "0 differences."; else echo "$fails differences."; fi
+case $fails in 0) echo "0 differences." ;; 1) echo "1 difference." ;; *) echo "$fails differences." ;; esac
 [ "$fails" -eq 0 ]

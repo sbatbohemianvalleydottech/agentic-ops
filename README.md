@@ -41,7 +41,7 @@ covered without anyone remembering.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/python -m pytest                    # 187 tests, ~1.5s
+.venv/bin/python -m pytest                    # 219 tests, ~1.5s
 
 .venv/bin/python -m cost_agent \
   --costs cost_agent/fixtures/estate_a/costs.csv \
@@ -96,6 +96,10 @@ commit: constitution, then specify, plan, tasks, implement, per feature. The
 and CI enforces the one that is mechanically checkable.
 
 Test-first throughout. No production code without a failing test watched failing first.
+
+The Claude Code setup it was built with is in [setup/README.md](setup/README.md): steps
+another Claude Code session can run to reproduce it, verified by running them against an
+empty profile.
 
 Feature 004 exists because running `cost_agent` on a real estate exposed a gap in my own
 taxonomy: it filed a platform with a published sunset date under *right-sizing*, because

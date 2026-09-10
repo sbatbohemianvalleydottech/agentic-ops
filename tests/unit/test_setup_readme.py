@@ -36,7 +36,7 @@ SECRET_SHAPES = {
 
 
 def executable_blocks() -> list[str]:
-    blocks = FENCED_BASH.findall(README.read_text())
+    blocks = FENCED_BASH.findall(README.read_text(encoding="utf-8"))
     return [block for block in blocks if block.startswith(("# step ", "# check"))]
 
 
@@ -66,7 +66,7 @@ def test_steps_are_numbered_from_one_without_gaps():
 
 def test_every_executable_block_parses_as_bash():
     for block in executable_blocks():
-        result = subprocess.run(["bash", "-n"], input=block, capture_output=True, text=True)
+        result = subprocess.run(["bash", "-n"], input=block, capture_output=True, encoding="utf-8")
         assert result.returncode == 0, f"{first_line(block)}: {result.stderr}"
 
 
@@ -102,7 +102,7 @@ def test_nothing_feature_010_adds_holds_a_secret():
     for root in SCANNED_FOR_SECRETS:
         files = [path for path in root.rglob("*") if path.is_file()] if root.is_dir() else []
         for path in files:
-            text = path.read_text(errors="ignore")
+            text = path.read_text(encoding="utf-8", errors="ignore")
             for kind, shape in SECRET_SHAPES.items():
                 assert not shape.search(text), f"{kind} shape in {path.relative_to(ROOT)}"
             scanned.append(path)
