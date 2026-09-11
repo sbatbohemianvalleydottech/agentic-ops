@@ -1,12 +1,10 @@
 # Toolchain setup
 
-The Claude Code configuration this repository was built with, written as steps another
-Claude Code session can run. Run against an empty profile on 10 September 2026, the steps
-reproduced it with no differences: the three configuration files byte for byte, both
-plugins with identical files, and a Context7 key check that told a real key from a
-placeholder. The three claude.ai connectors cannot be reproduced from any file, because
-they live in an account. The hooks are thin: two, neither at pre-commit, neither for
-governance.
+This is the Claude Code setup I used to build this repository, written so you can run it
+rather than take my word for it. Give this file to your own Claude Code and it will set up
+the same settings, MCP server and plugins as mine, then check the result. Every step writes
+to whichever Claude Code profile is active, so you can try it on a scratch profile before it
+touches yours.
 
 ## What you get
 
