@@ -1,15 +1,14 @@
 <!--
 Sync Impact Report
-Version change: none → 1.0.0 (initial ratification)
-Modified principles: none (first version)
-Added sections:
-  - Core Principles I-V
-  - Evidence and Data Constraints
-  - Development Workflow
-  - Governance
+Version change: 1.0.0 → 1.0.1 (PATCH, wording)
+Modified principles:
+  - IV. One-Way Dependencies: now names the shared primitives that exist. It named
+    connectors/, which was planned and never built, and left out ledger/, which the
+    contract test already protects. What the principle requires is unchanged.
+Added sections: none
 Removed sections: none
-Templates requiring review: plan-template, spec-template, tasks-template read this
-  file at runtime; no changes made to them here.
+Templates requiring review: none. plan-template, spec-template and tasks-template read
+  this file at runtime; no changes made to them here.
 Deferred TODOs: none
 -->
 
@@ -52,9 +51,9 @@ whether it can catch the bug it claims to cover.
 
 ### IV. One-Way Dependencies
 
-`ensemble/` and `connectors/` MUST NOT import from any agent package. Dependencies point
-one way only, from agents to shared primitives. This MUST be enforced by an automated
-check in CI, not by review.
+`ensemble/` and `ledger/`, the shared primitives, MUST NOT import from any agent package.
+Dependencies point one way only, from agents to shared primitives. This MUST be enforced
+by an automated check in CI, not by review.
 
 Rationale: this is the whole difference between reusable artifacts and one application
 split across three folders. It is a checkable property, so it MUST be checked rather
@@ -114,4 +113,4 @@ clarifications and wording.
 Compliance is verified at review time. Any complexity that appears to violate a
 principle MUST be justified in the plan's Complexity Tracking section or removed.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-09 | **Last Amended**: 2026-09-09
+**Version**: 1.0.1 | **Ratified**: 2026-09-09 | **Last Amended**: 2026-09-11
