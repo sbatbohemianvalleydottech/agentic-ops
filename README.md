@@ -26,12 +26,13 @@ a grade is off the rubric's scale      -> HALT  invalid verdict
 
 ## What is here
 
-| Package | What it does |
+| Directory | What it does |
 |---|---|
 | **[`ensemble`](ensemble/README.md)** | The gate. A pure function over verdicts, plus the orchestrator and provider seam |
 | **[`ledger`](ledger/)** | Append-only JSONL cost ledger. What any decision cost, after the fact |
 | **[`cost_agent`](cost_agent/README.md)** | Finds the structural reasons a cloud bill is what it is, rather than ranking line items by size |
 | **[`rca_agent`](rca_agent/README.md)** | Catches the incident review that reads well and says nothing |
+| **[`setup`](setup/README.md)** | The Claude Code setup this was built with, as steps your own Claude Code can run |
 
 `ensemble` and `ledger` import nothing from either agent. That is enforced by a contract
 test which discovers agent packages from the directory tree, so an agent added later is
