@@ -131,9 +131,11 @@ from different providers, plus a judge that never learns whether they agreed. A 
 marks the driver `NEEDS_REVIEW` rather than settling on "medium", because an averaged
 confidence is a fabricated agreement wearing a number.
 
-Every model is probed with one minimal call first, so a dead model or an unfunded
-account costs a third of a cent to find rather than a full run. `--check` does only
-that and stops. Progress goes to stderr with a running cost; the report stays on stdout.
+Every model is probed with one minimal call first, and the run stops there if any of them
+fails, so a dead model or an unfunded account costs about $0.0003 to find rather than a
+full run. `cost_agent` has no probe-only flag, but both agents read the same model
+settings, so `rca_agent --check` probes exactly the models this would use. Progress goes to
+stderr with a running cost; the report stays on stdout.
 
 The report names the two assessors and the judge, because what produced a rating is the
 first thing an audit asks. Spend lands in `.ledger/calls.jsonl`.

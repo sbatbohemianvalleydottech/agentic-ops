@@ -35,8 +35,13 @@ match, `a == b` would do it and a third model would be decoration.
 ## Use it
 
 ```python
+from datetime import UTC, datetime
+from pathlib import Path
+
+from ensemble.gate import Decision
 from ensemble.orchestrator import Rater, run_decision
 from ensemble.providers.litellm import LiteLLMProvider
+from ensemble.report import format_halt_report
 from ensemble.types import EvidenceBundle, EvidenceRecord, Rubric
 from ledger import Ledger
 
@@ -48,7 +53,17 @@ result = run_decision(
         criteria="assess the year against the rubric",
         scale=("not meeting", "meeting", "exceeding"),
     ),
-    evidence=EvidenceBundle(subject="engineer-07", records=(...,)),
+    evidence=EvidenceBundle(
+        subject="engineer-07",
+        records=(
+            EvidenceRecord(
+                source="1:1 notes",
+                timestamp=datetime(2026, 3, 4, tzinfo=UTC),
+                ref="notes/engineer-07/2026-03-04.md",
+                content="Led the storage migration. Two incidents during cutover.",
+            ),
+        ),
+    ),
     raters=[
         Rater(provider, "anthropic/claude-opus-5"),
         Rater(provider, "gemini/gemini-3.8-flash"),

@@ -69,12 +69,17 @@ the narrative and asserts no defect is raised.
 
 ## `rca-hollow` is the fixture that matters
 
-The corpus has eight reviews. Seven each break one check. The eighth breaks none:
+The corpus has eight reviews. Six each break one check, and `rca-good` is the control, so
+it breaks none. The eighth breaks none either:
 
 ```
-rca-hollow    0 structural defects
-              stated cause: "A bad deploy went out and caused elevated latency."
+RCA rca-hollow
+
+  No structural defects.
 ```
+
+Its stated cause is "A bad deploy went out and caused elevated latency across the API
+tier."
 
 Four ordered timeline moments. Impact quantified to the user and the minute. Blameless
 language. A declared preventive action item. Follow-ups exported on time. It passes
@@ -87,12 +92,14 @@ proving something already proven.
 ## Judgement dimensions are gated one at a time
 
 Not one overall grade. A single grade tells a reviewer nothing about *what to look at*,
-and one contested judgement would halt the whole review.
+and one contested judgement would halt the whole review. From a live run on `rca-hollow`,
+with each rater's reasoning left out:
 
 ```
-cause_not_trigger:      CONTESTED, needs human review
-no_alternate_reality:   adequate
-actions_would_prevent:  weak
+    cause_not_trigger: weak
+    no_alternate_reality: CONTESTED, needs human review
+      Assessment halted. Assessors disagreed: ...
+    actions_would_prevent: weak
 ```
 
 A contested dimension gets **no grade at all**. "Adequate", sitting between one assessor's
@@ -101,13 +108,22 @@ A contested dimension gets **no grade at all**. "Adequate", sitting between one 
 ## Completion is the figure no single review surfaces
 
 ```
-Items:                    21
-Closed:                   13 (62%)
-Median age of open items: 163 days
-Closed with no evidence:  1
+ACTION ITEM COMPLETION
 
-Export policy breaches:   rca-abandoned
-Repeated action items:    "Set a default lock timeout of 5s on all migrations"
+  Items:                    21
+  Closed:                   13 (62%)
+  Median age of open items: 163 days
+  Closed with no evidence:  1
+
+  Export policy breaches
+    Follow-ups not in a tracker beyond the window after closure.
+    - rca-abandoned
+
+  Repeated action items
+    The same commitment made in more than one review, which is evidence
+    the first attempt never landed.
+    - "Post the incident summary to the status page"
+    - "Set a default lock timeout of 5s on all migrations"
 ```
 
 Closed-with-evidence and closed-without are counted separately, because they are different
@@ -135,7 +151,7 @@ cp .env.example .env    # keys go here, or export them; an export always wins
 .venv/bin/python -m rca_agent --corpus rca_agent/fixtures/corpus --judgement
 ```
 
-`--check` probes every configured model for a third of a cent and stops. The judgement
+`--check` probes every configured model for about $0.0003 and stops. The judgement
 pass runs it first anyway, then prints progress to stderr with a running cost, and names
 the assessors and the judge in the report.
 

@@ -38,7 +38,7 @@ a grade is off the rubric's scale      -> HALT  invalid verdict
 test which discovers agent packages from the directory tree, so an agent added later is
 covered without anyone remembering.
 
-## Run it — 30 seconds, no credentials
+## Run it: 30 seconds, no credentials
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
@@ -77,8 +77,8 @@ be treated as one.
 ```
 
 `--check` sends one minimal call per configured model and reports what came back. It also
-runs automatically before any paid pass, so a dead model or an unfunded account costs a
-third of a cent to discover instead of a full run.
+runs automatically before any paid pass, so a dead model or an unfunded account costs
+about $0.0003 to discover instead of a full run.
 
 ```bash
 .venv/bin/python -m ensemble.demo                              # ~3 calls, a few cents
