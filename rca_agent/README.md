@@ -272,7 +272,7 @@ are from runs made before the rubric field existed, and they are why it exists.
   incident artifacts and then runs this eval over what it just wrote, but drafting is not a
   feature here: an agent-written RCA is precisely the artifact the eval exists to doubt.
 - **The corpus is synthetic.** No real incident data is in this repository.
-- **Built in a week for a project.** Not production-tested.
+- **Built in a week.** Not production-tested.
 
 ## Run its tests
 

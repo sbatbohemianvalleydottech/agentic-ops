@@ -7,7 +7,8 @@ the document breaking in the ways a reader's session would hit first. A block th
 parse, steps out of order, a settings file that is not JSON, a step writing outside the
 active config directory, a command that prints the key, or a secret pasted in.
 
-The contract these rely on is specs/010-executable-setup/contracts/step-blocks.md.
+Every executable block is fenced bash, numbered `# step N:`, and writes only
+under the active profile. These tests are what hold that shape in place.
 """
 
 import json
@@ -17,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 README = ROOT / "setup" / "README.md"
-SCANNED_FOR_SECRETS = (ROOT / "setup", ROOT / "specs" / "010-executable-setup")
+SCANNED_FOR_SECRETS = (ROOT / "setup",)
 
 FENCED_BASH = re.compile(r"^```bash[ \t]*\n(.*?)^```[ \t]*$", re.MULTILINE | re.DOTALL)
 STEP_HEADER = re.compile(r"# step (\d+): \S")

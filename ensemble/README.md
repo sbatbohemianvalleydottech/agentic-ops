@@ -139,8 +139,8 @@ meters every call to the ledger, and hands the verdicts to a pure function.
   line above.
 - **A provider failure returns no verdict**, never a plausible default.
 
-The precedence above, and why each rule sits where it does, is worked through in
-[`specs/001-ensemble-halt-gate/data-model.md`](../specs/001-ensemble-halt-gate/data-model.md).
+The precedence above is the order of the checks in `ensemble/gate.py`, and each one carries
+a comment saying why it sits where it does.
 
 ## What you can argue with
 
@@ -201,5 +201,5 @@ Importing it fails without that; importing `ensemble` does not. A machine that a
 `litellm` will not see that failure, so check with `uv pip show litellm` before concluding
 either way.
 
-LiteLLM is the seam because it is what the model gateway this work targets already runs, so the
+LiteLLM is the seam because it is what the model gateway this targets already runs, so the
 artifact speaks the platform's interface rather than sitting beside it.

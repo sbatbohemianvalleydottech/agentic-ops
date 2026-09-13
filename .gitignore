@@ -7,3 +7,9 @@ __pycache__/
 .pytest_cache/
 .ledger/
 .drafted-rca.json
+.ruff_cache/
+
+# Working files from the spec-driven workflow. The process shows in the
+# commit history; the working documents are not part of the published repository.
+specs/
+.specify/feature.json

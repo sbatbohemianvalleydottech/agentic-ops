@@ -111,7 +111,7 @@ def scheduled(resource_id, date) -> Finding:
 
 
 def test_a_driver_with_scheduled_decommissions_reports_the_furthest_date():
-    """a large share eliminable and a large share eliminable by end-2028 are different claims,
+    """Eliminable and eliminable by a date three years out are different claims,
     and only the second is true."""
     driver = estimate_savings(
         elimination_driver(

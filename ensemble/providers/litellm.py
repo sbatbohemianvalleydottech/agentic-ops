@@ -1,6 +1,6 @@
 """LiteLLM-backed provider.
 
-LiteLLM is the seam because it is what the model gateway this work targets already
+LiteLLM is the seam because it is what the model gateway this targets already
 runs, so the artifact speaks the platform's interface rather than sitting beside
 it. Importing this module requires litellm installed; importing `ensemble` does
 not. Install with `pip install -e ".[providers]"`.
@@ -48,7 +48,7 @@ JUDGE_SCHEMA = {
 # has to physically precede volatile content for a cache breakpoint to have a
 # prefix to sit on. No cache_control is set yet, because at 308 evidence tokens
 # we are below the 512-token minimum on Opus 5 and a marker would silently do
-# nothing. See specs/007-operable-runs/spec.md.
+# nothing. See the preflight module.
 _RATER_PROMPT = """EVIDENCE about {subject}:
 {evidence}
 

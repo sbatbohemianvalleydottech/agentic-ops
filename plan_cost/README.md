@@ -105,10 +105,9 @@ rather than failing in front of an audience.
 
 ## How it works
 
-**Every resource is accounted for.** Twelve changed, twelve placed. A cost check that
-prices four resources out of twelve and prints one total has produced a confident wrong
-answer, which is the failure this repository exists to catch, and a reader cannot tell it
-apart from a correct one. So every changed resource lands in exactly one bucket, and the
+**Every resource is accounted for.** Twelve changed, twelve placed. A cost check that prices four resources out of
+twelve and prints one total has produced a confident wrong answer, and a reader cannot tell
+it apart from a correct one. So every changed resource lands in exactly one bucket, and the
 buckets are asserted to sum to the number of changes in code, not only in a test:
 
 | Bucket | Meaning |
@@ -308,7 +307,7 @@ nothing here opens a socket.
 - **It judges one change in isolation.** Current spend needs the billing export, which is a
   different data source.
 - **Google Cloud only.** A second cloud is an extension point, not a claim.
-- **Built in a day, for a project.** Not production-tested.
+- **Built in a day.** Not production-tested.
 
 ## Run its tests
 
@@ -321,8 +320,7 @@ nothing here opens a socket.
   tests/contract/test_no_network.py
 ```
 
-143 tests, offline, no credentials. The design and the evidence behind it are in
-[specs/011-plan-cost](../specs/011-plan-cost/).
+143 tests, offline, no credentials.
 
 ## Dependencies
 

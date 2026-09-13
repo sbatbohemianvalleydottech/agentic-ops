@@ -38,8 +38,8 @@ def evaluate_gate(
     rather than trusted.
 
     Precedence is fixed because several conditions can hold at once, and which
-    one a human is told about changes what they do next. See
-    specs/001-ensemble-halt-gate/data-model.md.
+    one a human is told about changes what they do next. The order of the
+    checks below is that precedence, and each carries the reason it sits there.
 
     Raises:
         ValueError: fewer than two rater slots. That is a misconfiguration, not

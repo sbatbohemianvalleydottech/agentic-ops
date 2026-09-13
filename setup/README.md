@@ -313,7 +313,7 @@ model opus[1m], subagents sonnet, hooks on Stop
 context7 key: accepted
 ```
 
-## The toolchain, against the remit
+## The toolchain, item by item
 
 ### 1. Agent surface and its configuration
 
@@ -363,16 +363,16 @@ step 5 makes it the default for library, framework, SDK, API and CLI questions, 
 why it gets used without being asked for: 138 calls in the transcripts this machine
 retains, counted at 22:46Z on 10 September.
 
-The example the remit asks for comes from the session that built this repository. At
+The example worth giving comes from the session that built this repository. At
 06:14:39Z and 06:14:40Z on 10 September, that session asked Context7 two questions about
 LiteLLM, whose adapter it had written the night before: how to read a response's cost,
 `completion_cost()` against `response._hidden_params["response_cost"]`, and how to get
 structured output, `json_object` against `json_schema` with `supports_response_schema`. At
-06:19:04Z, commit `6e70d6a` changed exactly those two things: cost is now read from
+06:19:04Z, commit `ce66912` changed exactly those two things: cost is now read from
 `response._hidden_params["response_cost"]` with `completion_cost()` as the fallback, and
 structured output uses a JSON schema in strict mode where the model supports one. Its
 message says both came "from checking the library docs rather than trusting what I wrote
-from memory". `git show 6e70d6a` has the rest.
+from memory". `git show ce66912` has the rest.
 
 **claude.ai connectors**: Gmail, Google Calendar and Google Drive. These are not local
 configuration. They belong to the Anthropic account Claude Code is logged in to, which is
@@ -558,9 +558,9 @@ judge from Anthropic. That routing and the case for two vendors are in
 
 `setup/verify.sh` pulls this document's own `# step` blocks out, runs them twice against an
 empty profile, and compares the result with a reference profile, one line per item. It
-never prints a key, a header value or the contents of a settings file. What it relies on,
-shared with this document and with `tests/unit/test_setup_readme.py`, is written down in
-[the step-block contract](../specs/010-executable-setup/contracts/step-blocks.md).
+never prints a key, a header value or the contents of a settings file. What it relies on is shared with
+this document and with `tests/unit/test_setup_readme.py`: every executable block is fenced
+bash, numbered `# step N:`, and writes only under the active profile.
 
 The recorded run, against the empty profile `/tmp/claude-clean-verify` and compared with
 this machine's own profile:

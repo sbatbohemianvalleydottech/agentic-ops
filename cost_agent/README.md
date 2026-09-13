@@ -8,18 +8,19 @@ yet, [TRY-IT.md](../TRY-IT.md) does that in two commands and says which Python i
 
 ## Why it exists
 
-**A line item**: "Kubernetes costs $240,901 a year and runs at 38% CPU." That is a number
-off a bill. Anyone with billing access can read it out.
+**A line item**: "`a-node-1` costs $240,901 a year and runs at 38% utilisation." That is a
+number off a bill. Anyone with billing access can read it out.
 
 **A structural driver**: "Nothing in this estate scales with demand. Eight resources
 across compute, database, cache and CI are provisioned for peak and none autoscale.
 That is 78.6% of the bill, and it is one absent management practice rather than eight
 engineering problems."
 
-The second is worth building a tool for. So a driver must explain more than one resource
-and name what is *missing*, not what is expensive. Single-resource drivers still get
-reported, but flagged, because a driver that explains one line is a line item wearing a
-better name.
+Both figures come from the `estate_a` fixture below, so a reader can reproduce either. The
+second is the one worth building a tool for, so a driver must explain more than one
+resource and name what is *missing* rather than what is expensive. Single-resource drivers
+are still reported, but flagged, because a driver that explains one line is a line item
+wearing a better name.
 
 ## Run it
 
@@ -82,8 +83,7 @@ rather than asserted.
 cannot see contracts, reserved capacity, a workload that looks idle because it is a warm
 standby, or a compliance hold on a bucket. A point estimate would claim knowledge it does
 not have, so each driver reports a range with a conservative lower bound plus the single
-question that would confirm it. That question is where the analysis honestly stops, and it
-is the most credible thing in the output.
+question that would confirm it. That question is where the analysis stops and a human takes over.
 
 **Nothing is silently dropped.** Every resource from either input ends up somewhere:
 attributed to a driver, listed as contested, reported as unassessable, flagged as
@@ -97,23 +97,17 @@ resources shows no unmatched section.
 `decommission_at` per resource, because the tool does not get to decide which of your
 platforms are obsolete.
 
-It matters more than it looks, and this is the story rather than fixture output: an earlier
-version, run against a modelled estate, filed a legacy platform with a published sunset
-date under *capacity management*, because utilisation was the only signal for "should this
-exist". Recoverable fraction 0.30 as capacity, 1.00 as elimination, on roughly a large share of
-spend, so the same evidence produced answers about $2.5M apart. Worse, it would confidently
-have told a migration team to right-size a cluster they had already committed to deleting.
+It matters more than it looks. An earlier version filed a platform with a published
+end-of-life date under *capacity management*, because utilisation was the only signal it
+had for "should this exist". Filed as capacity its recoverable fraction is 0.30; filed as
+elimination it is 1.00, so on a large estate the same evidence produced answers millions
+apart. Worse, it would have told a migration team to go and right-size a cluster they had
+already committed to deleting.
 
-Anything scheduled now reports its horizon beside the figure:
-
-```
-Savings:      $2,196,000 to $3,660,000 (60.0% to 100.0%)
-Realised at:  2028-12-31, when the last of these workloads is scheduled to go
-```
-
-`a large share eliminable` and `a large share eliminable by end-2028` are different claims, and only the
-second is true. A date already in the past is reported separately, because still paying
-for something that should already be gone is a stronger finding than a planned retirement.
+Anything scheduled now reports its horizon beside the savings range, because "eliminable"
+and "eliminable by a date three years out" are different claims and only the second is
+true. A date already in the past is reported separately: still paying for something that
+should already be gone is a stronger finding than a planned retirement.
 
 ## What you can argue with
 
@@ -176,8 +170,8 @@ first thing an audit asks, and spend lands in `.ledger/calls.jsonl`.
 - **It does not decide what should be retired.** `decommission_at` is something you state.
 - **The fixtures are synthetic**, and every figure in this README comes from them or from
   the modelled estate described above. No real billing data is in this repository.
-- **Built in a week for a project.** Not production-tested, and it has never run against
-  a live billing export.
+- **Built in a week.** Not production-tested, and it has never run against a live billing
+  export.
 
 ## Run its tests
 

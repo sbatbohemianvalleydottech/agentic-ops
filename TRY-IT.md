@@ -1,6 +1,6 @@
 # Try it locally
 
-Every command below was run on 13 September 2026 in a fresh clone of commit `30ab963`, and
+Every command below was run on 13 September 2026 in a fresh clone of commit `d32e3fe`, and
 the outputs quoted are what it printed. Nothing here needs a credential, a cloud account, a
 Terraform binary or a model call. The whole walkthrough is about two minutes.
 
@@ -57,8 +57,9 @@ cannot quietly mean "it was not run".
   --inventory cost_agent/fixtures/estate_a/inventory.json --as-of 2026-09-01
 ```
 
-73 lines, exit 0. Structural cost drivers on a synthetic estate. Swap `estate_a` for `estate_b` and the same code produces a different diagnosis,
-which is the check against a tool that has memorised its fixture.
+73 lines, exit 0. Structural cost drivers on a synthetic estate. Swap `estate_a` for
+`estate_b` and the same code produces a different diagnosis, which is the check against a
+tool that has memorised its fixture.
 
 ```bash
 .venv/bin/python -m rca_agent \
@@ -188,5 +189,4 @@ repository.
 - [`setup/README.md`](setup/README.md), the Claude Code setup this was built with, written so
   your own agent can reproduce it
 - [`.specify/memory/constitution.md`](.specify/memory/constitution.md), the five rules the
-  code is held to, and [`specs/`](specs/), one directory per feature with the evidence behind
-  each decision
+  code is held to, one of which CI enforces
