@@ -44,6 +44,9 @@ Knowing when not to reach for a model is the harder half of the claim.
 test which discovers agent packages from the directory tree, so an agent added later is
 covered without anyone remembering.
 
+Start here to run it yourself: [TRY-IT.md](TRY-IT.md), every command verified in a fresh
+clone.
+
 ## Run it: 30 seconds, no credentials
 
 ```bash
