@@ -9,6 +9,7 @@ plan marked sensitive anywhere in the output.
 
 from __future__ import annotations
 
+import textwrap
 from collections import Counter
 from collections.abc import Sequence
 from decimal import Decimal
@@ -160,8 +161,8 @@ def _decision(
         f"  rule fired at blocking severity   {rule}",
         f"  monthly change over threshold     {threshold}",
     ]
-    if threshold_note:
-        lines.append(f"                                    {threshold_note}")
+    for chunk in textwrap.wrap(threshold_note, width=74):
+        lines.append(f"                                    {chunk}")
     lines += [
         f"  environment policy                {decision.environment} "
         f"{'blocks' if decision.policy == 'block' else 'reports'}",

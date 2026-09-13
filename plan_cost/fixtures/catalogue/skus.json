@@ -1,0 +1,176 @@
+{
+  "_comment": [
+    "A saved Cloud Billing Catalog API response, trimmed to the SKUs this tool maps.",
+    "Authored against the documented shape at",
+    "https://docs.cloud.google.com/billing/docs/reference/rest/v1/services.skus/list",
+    "because no billing credentials exist where this was built. Get a real one with:",
+    "curl -H \"Authorization: Bearer $(gcloud auth print-access-token)\" \\",
+    "  https://cloudbilling.googleapis.com/v1/services/6F81-5844-456A/skus > skus.json"
+  ],
+  "skus": [
+    {
+      "name": "services/6F81-5844-456A/skus/D973-5D65-BAB2",
+      "skuId": "D973-5D65-BAB2",
+      "description": "Balanced PD Capacity in Iowa",
+      "category": {
+        "serviceDisplayName": "Compute Engine",
+        "resourceFamily": "Storage",
+        "resourceGroup": "SSD",
+        "usageType": "OnDemand"
+      },
+      "serviceRegions": ["us-central1"],
+      "pricingInfo": [
+        {
+          "effectiveTime": "2026-09-01T00:00:00Z",
+          "summary": "",
+          "pricingExpression": {
+            "usageUnit": "GiBy.mo",
+            "usageUnitDescription": "gibibyte month",
+            "baseUnit": "By.s",
+            "displayQuantity": 1,
+            "tieredRates": [
+              {
+                "startUsageAmount": 0,
+                "unitPrice": {
+                  "currencyCode": "USD",
+                  "units": "0",
+                  "nanos": 100000000
+                }
+              }
+            ]
+          },
+          "currencyConversionRate": 1
+        }
+      ],
+      "serviceProviderName": "Google",
+      "geoTaxonomy": {
+        "type": "REGIONAL",
+        "regions": ["us-central1"]
+      }
+    },
+    {
+      "name": "services/6F81-5844-456A/skus/A7C3-1B4D-9E22",
+      "skuId": "A7C3-1B4D-9E22",
+      "description": "SSD backed PD Capacity in Iowa",
+      "category": {
+        "serviceDisplayName": "Compute Engine",
+        "resourceFamily": "Storage",
+        "resourceGroup": "SSD",
+        "usageType": "OnDemand"
+      },
+      "serviceRegions": ["us-central1"],
+      "pricingInfo": [
+        {
+          "effectiveTime": "2026-09-01T00:00:00Z",
+          "pricingExpression": {
+            "usageUnit": "GiBy.mo",
+            "usageUnitDescription": "gibibyte month",
+            "tieredRates": [
+              {
+                "startUsageAmount": 0,
+                "unitPrice": {
+                  "currencyCode": "USD",
+                  "units": "0",
+                  "nanos": 187000000
+                }
+              }
+            ]
+          },
+          "currencyConversionRate": 1
+        }
+      ],
+      "geoTaxonomy": {
+        "type": "REGIONAL",
+        "regions": ["us-central1"]
+      }
+    },
+    {
+      "name": "services/6F81-5844-456A/skus/2E27-4F75-95CD",
+      "skuId": "2E27-4F75-95CD",
+      "description": "E2 Instance Core running in Americas",
+      "category": {
+        "serviceDisplayName": "Compute Engine",
+        "resourceFamily": "Compute",
+        "resourceGroup": "CPU",
+        "usageType": "OnDemand"
+      },
+      "serviceRegions": ["us-central1", "us-east1", "us-west1"],
+      "pricingInfo": [
+        {
+          "effectiveTime": "2026-09-01T00:00:00Z",
+          "pricingExpression": {
+            "usageUnit": "h",
+            "usageUnitDescription": "hour",
+            "tieredRates": [
+              {
+                "startUsageAmount": 0,
+                "unitPrice": {
+                  "currencyCode": "USD",
+                  "units": "0",
+                  "nanos": 21811000
+                }
+              }
+            ]
+          },
+          "currencyConversionRate": 1
+        }
+      ],
+      "geoTaxonomy": {
+        "type": "MULTI_REGIONAL",
+        "regions": ["us-central1", "us-east1", "us-west1"]
+      }
+    },
+    {
+      "name": "services/6F81-5844-456A/skus/5B7C-0A11-77F9",
+      "skuId": "5B7C-0A11-77F9",
+      "description": "Network Internet Egress from Americas to Americas",
+      "category": {
+        "serviceDisplayName": "Compute Engine",
+        "resourceFamily": "Network",
+        "resourceGroup": "InternetEgress",
+        "usageType": "OnDemand"
+      },
+      "serviceRegions": ["us-central1"],
+      "pricingInfo": [
+        {
+          "effectiveTime": "2026-09-01T00:00:00Z",
+          "pricingExpression": {
+            "usageUnit": "GiBy",
+            "usageUnitDescription": "gibibyte",
+            "tieredRates": [
+              {
+                "startUsageAmount": 0,
+                "unitPrice": {
+                  "currencyCode": "USD",
+                  "units": "0",
+                  "nanos": 0
+                }
+              },
+              {
+                "startUsageAmount": 1,
+                "unitPrice": {
+                  "currencyCode": "USD",
+                  "units": "0",
+                  "nanos": 120000000
+                }
+              },
+              {
+                "startUsageAmount": 10240,
+                "unitPrice": {
+                  "currencyCode": "USD",
+                  "units": "0",
+                  "nanos": 110000000
+                }
+              }
+            ]
+          },
+          "currencyConversionRate": 1
+        }
+      ],
+      "geoTaxonomy": {
+        "type": "REGIONAL",
+        "regions": ["us-central1"]
+      }
+    }
+  ]
+}

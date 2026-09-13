@@ -1,0 +1,53 @@
+{
+  "_comment": [
+    "A saved Cloud Billing Budget API response, authored against the documented shape at",
+    "https://docs.cloud.google.com/billing/docs/reference/budget/rest/v1/billingAccounts.budgets/list",
+    "because no billing credentials exist where this was built. Get a real one with:",
+    "gcloud billing budgets list --billing-account=0X0X0X-0X0X0X-0X0X0X --format=json"
+  ],
+  "budgets": [
+    {
+      "name": "billingAccounts/0X0X0X-0X0X0X-0X0X0X/budgets/6f1a2b3c-4d5e-6f70-8192-a3b4c5d6e7f8",
+      "displayName": "platform-monthly",
+      "budgetFilter": {
+        "projects": ["projects/123456789012"],
+        "calendarPeriod": "MONTH",
+        "creditTypesTreatment": "INCLUDE_ALL_CREDITS"
+      },
+      "amount": {
+        "specifiedAmount": {
+          "currencyCode": "USD",
+          "units": "800",
+          "nanos": 0
+        }
+      },
+      "thresholdRules": [
+        {
+          "thresholdPercent": 0.25
+        },
+        {
+          "thresholdPercent": 0.9,
+          "spendBasis": "FORECASTED_SPEND"
+        }
+      ],
+      "etag": "abc123"
+    },
+    {
+      "name": "billingAccounts/0X0X0X-0X0X0X-0X0X0X/budgets/7a2b3c4d-5e6f-7081-92a3-b4c5d6e7f809",
+      "displayName": "data-platform-last-period",
+      "budgetFilter": {
+        "projects": ["projects/210987654321"],
+        "calendarPeriod": "MONTH"
+      },
+      "amount": {
+        "lastPeriodAmount": {}
+      },
+      "thresholdRules": [
+        {
+          "thresholdPercent": 1.0
+        }
+      ],
+      "etag": "def456"
+    }
+  ]
+}

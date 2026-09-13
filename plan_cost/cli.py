@@ -4,20 +4,26 @@ Exit 2 means the tool could not judge: an unreadable plan, a format version
 nobody has checked, a contradictory price table, or no environment from either
 source. It never means expensive. A gate that cannot tell a broken input from a
 costly change is not usable in CI.
+
+Two inputs come from the vendor, and both arrive as files the operator saved
+with a documented command. Nothing here opens a socket.
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 from datetime import date
 from pathlib import Path
 
+from .budget import BudgetError, threshold_from
 from .gate import decide
 from .plan import PlanError, load_plan
 from .policy import Policy, PolicyError, action_for, load_policy, resolve_environment
 from .prices import PriceError, PriceTable, load_prices
 from .pricing import price_plan
+from .refresh import RefreshError, refresh_prices
 from .report import render
 from .rules import findings_for
 
@@ -41,11 +47,34 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--prices", type=Path, default=HERE / "prices.toml")
     parser.add_argument("--policy", type=Path, default=HERE / "policy.toml")
+    parser.add_argument(
+        "--budget-json",
+        dest="budget",
+        type=Path,
+        help="saved output of `gcloud billing budgets list --format=json`. "
+        "When given, the threshold comes from your budget rather than the policy file",
+    )
+    parser.add_argument(
+        "--budget-name",
+        dest="budget_name",
+        help="which budget to use, when the response holds more than one",
+    )
+    parser.add_argument(
+        "--refresh-prices",
+        dest="refresh",
+        type=Path,
+        help="saved Cloud Billing Catalog response. Updates the price table and exits "
+        "without judging a plan",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+
+    if args.refresh is not None:
+        return _refresh(args)
+
     if args.plan is None:
         print("plan_cost: --plan is required", file=sys.stderr)
         return 2
@@ -62,12 +91,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"plan_cost: {exc}", file=sys.stderr)
         return 2
 
+    threshold, threshold_note = _threshold(args, policy)
+    if threshold is None:
+        return 2
+
     priced = price_plan(plan.changes, table)
     findings = findings_for(plan.changes, policy.severities)
     decision = decide(
         findings=findings,
         total=priced.total,
-        threshold=policy.threshold,
+        threshold=threshold,
         environment=environment,
         environment_source=source,
         policy=action,
@@ -81,10 +114,57 @@ def main(argv: list[str] | None = None) -> int:
             decision=decision,
             table=table,
             policy=policy,
+            threshold_note=threshold_note,
         )
     )
     _warn_if_stale(table, policy)
     return 1 if decision.blocked else 0
+
+
+def _threshold(args: argparse.Namespace, policy: Policy):
+    """The monthly limit, and the note explaining where it came from.
+
+    A budget that cannot produce one is a warning and a fallback, never a guess.
+    """
+    if args.budget is None:
+        return policy.threshold, ""
+    try:
+        document = json.loads(args.budget.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"plan_cost: {args.budget} could not be read: {exc}", file=sys.stderr)
+        return None, ""
+    try:
+        derived = threshold_from(document, name=args.budget_name)
+    except BudgetError as exc:
+        print(
+            f"plan_cost: {exc}. Falling back to the threshold in the policy file",
+            file=sys.stderr,
+        )
+        return policy.threshold, f"budget not used: {exc}"
+    return derived.monthly, (
+        f"{derived.derivation}. It covers {derived.applies_to}, "
+        "which was not matched against this plan"
+    )
+
+
+def _refresh(args: argparse.Namespace) -> int:
+    try:
+        catalogue = json.loads(args.refresh.read_text(encoding="utf-8"))
+        report = refresh_prices(args.prices, catalogue, today=date.today())
+    except (OSError, json.JSONDecodeError) as exc:
+        print(
+            f"plan_cost: {args.refresh} could not be read as a catalogue response: {exc}",
+            file=sys.stderr,
+        )
+        return 2
+    except RefreshError as exc:
+        print(f"plan_cost: {exc}", file=sys.stderr)
+        return 2
+
+    print(f"PRICE REFRESH  {args.prices}")
+    print()
+    print(report.as_text())
+    return 0
 
 
 def _warn_if_stale(table: PriceTable, policy: Policy) -> None:

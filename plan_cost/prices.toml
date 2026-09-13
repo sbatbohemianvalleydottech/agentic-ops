@@ -64,3 +64,25 @@ sku_id   = ""
 # source   = "your own rate card"
 # taken_on = "2026-09-13"
 # sku_id   = ""
+
+# How a refresh finds a price in the vendor's catalogue.
+#
+# Each entry names the SKU description and region to look for. Rows with no
+# entry here cannot be refreshed, and --refresh-prices says so per row rather
+# than leaving them looking fresh.
+#
+# There is deliberately no entry for a machine type. Compute Engine prices cores
+# and memory as separate SKUs, so no single SKU equals e2-standard-4, and
+# composing one needs a table of machine shapes this tool does not yet carry.
+
+[[map]]
+key         = "google/disk/pd-balanced/us-central1"
+unit        = "GB-month"
+region      = "us-central1"
+description = "Balanced PD Capacity"
+
+[[map]]
+key         = "google/disk/pd-ssd/us-central1"
+unit        = "GB-month"
+region      = "us-central1"
+description = "SSD backed PD Capacity"
