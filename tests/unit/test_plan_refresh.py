@@ -10,8 +10,10 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
+import pytest
+
 from plan_cost.prices import load_prices
-from plan_cost.refresh import refresh_prices
+from plan_cost.refresh import RefreshError, refresh_prices
 
 CATALOGUE = (
     Path(__file__).resolve().parents[2] / "plan_cost" / "fixtures" / "catalogue" / "skus.json"
@@ -162,3 +164,23 @@ def test_a_sku_in_another_region_does_not_match(tmp_path):
     path = a_table(tmp_path, body)
     report = refresh_prices(path, catalogue(), today=date(2026, 9, 13))
     assert any("europe-west1" in key for key, _ in report.unmatched) or report.unmatched
+
+
+def test_a_document_that_is_not_a_catalogue_response_is_refused(tmp_path):
+    """An expired token returns a JSON error body, not a catalogue. Reporting
+    that as "nothing matched" would let a broken CI job look like a clean one."""
+    path = a_table(tmp_path)
+    before = path.read_text(encoding="utf-8")
+    with pytest.raises(RefreshError) as raised:
+        refresh_prices(path, {"error": {"code": 403, "message": "PERMISSION_DENIED"}},
+                       today=date(2026, 9, 13))
+    assert "skus" in str(raised.value)
+    assert path.read_text(encoding="utf-8") == before
+
+
+def test_a_catalogue_with_no_matching_skus_is_not_an_error(tmp_path):
+    """An empty but well-formed response is a real answer: nothing to refresh."""
+    path = a_table(tmp_path)
+    report = refresh_prices(path, {"skus": []}, today=date(2026, 9, 13))
+    assert report.updated == [] and report.added == []
+    assert len(report.unmatched) == 2
