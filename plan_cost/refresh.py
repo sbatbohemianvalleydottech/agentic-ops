@@ -58,6 +58,16 @@ def refresh_prices(
     except tomllib.TOMLDecodeError as exc:
         raise RefreshError(f"{path} is not a readable price table: {exc}") from exc
 
+    # An expired token returns a JSON error body rather than a catalogue. Treating
+    # that as "nothing matched" would let a broken CI job look like a clean one.
+    if not isinstance(catalogue.get("skus"), list):
+        found = ", ".join(sorted(catalogue)) or "nothing"
+        raise RefreshError(
+            "this is not a Cloud Billing Catalog response: it carries no skus array. "
+            f"Top level keys found: {found}. An expired or missing access token "
+            "returns an error body that looks exactly like this"
+        )
+
     mappings = document.get("map", [])
     rows = {row.get("key"): row for row in document.get("price", [])}
     report = RefreshReport()
