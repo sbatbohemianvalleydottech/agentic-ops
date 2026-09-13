@@ -13,6 +13,9 @@ from plan_cost.cli import main
 REPO = Path(__file__).resolve().parents[2]
 ESTATE = REPO / "plan_cost" / "fixtures" / "estate" / "plan.json"
 SAAS = REPO / "plan_cost" / "fixtures" / "saas" / "plan.json"
+BUDGETS = REPO / "plan_cost" / "fixtures" / "budget" / "budgets.json"
+CATALOGUE = REPO / "plan_cost" / "fixtures" / "catalogue" / "skus.json"
+PRICES = REPO / "plan_cost" / "prices.toml"
 
 
 def run(capsys, *args):
@@ -95,3 +98,60 @@ def test_the_report_is_on_stdout_and_warnings_are_not(capsys):
     _, out, err = run(capsys, "--plan", ESTATE, "--env", "staging")
     assert "PLAN COST" in out
     assert "PLAN COST" not in err
+
+
+def test_a_budget_sets_the_threshold_and_shows_its_arithmetic(capsys):
+    code, out, _ = run(
+        capsys, "--plan", ESTATE, "--env", "staging",
+        "--budget-json", BUDGETS, "--budget-name", "platform-monthly",
+    )
+    assert code == 1
+    assert "$200.00" in out
+    assert "platform-monthly" in out
+    assert "projects/123456789012" in out
+
+
+def test_the_budget_says_it_does_not_know_current_spend(capsys):
+    _, out, _ = run(
+        capsys, "--plan", ESTATE, "--env", "staging",
+        "--budget-json", BUDGETS, "--budget-name", "platform-monthly",
+    )
+    assert "Current spend is unknown to this tool" in " ".join(out.split())
+
+
+def test_an_unusable_budget_falls_back_and_says_why(capsys):
+    """Two budgets and no name. The tool will not pick one for you."""
+    code, out, err = run(
+        capsys, "--plan", ESTATE, "--env", "staging", "--budget-json", BUDGETS,
+    )
+    assert code == 1
+    assert "$250.00" in out
+    assert "--budget-name" in err
+
+
+def test_a_refresh_takes_prices_from_the_catalogue(capsys, tmp_path):
+    table = tmp_path / "prices.toml"
+    table.write_text(PRICES.read_text(encoding="utf-8"), encoding="utf-8")
+    code, out, _ = run(capsys, "--refresh-prices", CATALOGUE, "--prices", table)
+    assert code == 0
+    assert "google/disk/pd-balanced/us-central1" in out
+    assert "no mapping" in out
+    assert 'amount   = "0.1"' in table.read_text(encoding="utf-8")
+
+
+def test_what_a_refresh_could_not_touch_is_named(capsys, tmp_path):
+    table = tmp_path / "prices.toml"
+    table.write_text(PRICES.read_text(encoding="utf-8"), encoding="utf-8")
+    _, out, _ = run(capsys, "--refresh-prices", CATALOGUE, "--prices", table)
+    assert "google/machine-type/e2-standard-4/us-central1" in out
+
+
+def test_a_refreshed_table_prices_the_disk_that_had_no_row(capsys, tmp_path):
+    """The missing disk row is not a permanent gap: one refresh with billing
+    credentials fills it from Google's own catalogue."""
+    table = tmp_path / "prices.toml"
+    table.write_text(PRICES.read_text(encoding="utf-8"), encoding="utf-8")
+    run(capsys, "--refresh-prices", CATALOGUE, "--prices", table)
+    _, out, _ = run(capsys, "--plan", ESTATE, "--env", "staging", "--prices", table)
+    assert "+$482.89" in out
+    assert "no price row" not in out
