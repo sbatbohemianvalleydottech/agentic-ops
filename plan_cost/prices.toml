@@ -1,0 +1,66 @@
+# What this tool believes things cost.
+#
+# Every row carries the URL it came from and the date it was read, so any figure
+# can be checked without leaving the repository, and a table nobody maintains is
+# visible rather than assumed fresh.
+#
+# These are third-party list prices. Nobody with a committed use discount pays
+# them. Replace this file with your own rates and nothing else changes, because
+# no code reads a price from anywhere but here.
+#
+# Amounts are strings so they parse to exact decimals. A float total invites a
+# rounding argument that has nothing to do with the analysis.
+#
+# Refresh from the vendor's own catalogue with:
+#   python -m plan_cost --refresh-prices skus.json
+# Where skus.json comes from is in specs/011-plan-cost/contracts/price-table.md.
+
+[[price]]
+key      = "google/machine-type/e2-standard-4/us-central1"
+unit     = "hour"
+amount   = "0.134"
+currency = "USD"
+region   = "us-central1"
+source   = "https://gcloud-compute.com/e2-standard-4.html"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/machine-type/e2-small/us-central1"
+unit     = "hour"
+amount   = "0.0168"
+currency = "USD"
+region   = "us-central1"
+source   = "https://gcloud-compute.com/e2-small.html"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/machine-type/n2-standard-4/us-central1"
+unit     = "hour"
+amount   = "0.1942"
+currency = "USD"
+region   = "us-central1"
+source   = "https://gcloud-compute.com/n2-standard-4.html"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+# There is no disk row here, deliberately.
+#
+# The source above publishes disk prices only as an average across all regions:
+# $0.05 pd-standard, $0.12 pd-balanced and $0.20 pd-ssd per GB-month, read on
+# 2026-09-13. This table is keyed by region. Writing a cross-region average into
+# a us-central1 row would be an invented number wearing a citation, so disks
+# report as having no price rather than as costing nothing.
+#
+# Add your own regional rate and disks price immediately, with no code change:
+#
+# [[price]]
+# key      = "google/disk/pd-balanced/us-central1"
+# unit     = "GB-month"
+# amount   = "0.10"
+# currency = "USD"
+# region   = "us-central1"
+# source   = "your own rate card"
+# taken_on = "2026-09-13"
+# sku_id   = ""

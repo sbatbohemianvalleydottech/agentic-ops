@@ -1,0 +1,325 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "variables": {
+    "environment": {
+      "value": "staging"
+    },
+    "project": {
+      "value": "example-platform-staging"
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "google_container_node_pool.primary",
+      "mode": "managed",
+      "type": "google_container_node_pool",
+      "name": "primary",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "cluster": "platform",
+          "location": "us-central1",
+          "name": "primary",
+          "node_count": 3,
+          "node_config": [
+            {
+              "disk_size_gb": 100,
+              "disk_type": "pd-balanced",
+              "machine_type": "e2-standard-4",
+              "labels": {
+                "workload": "platform"
+              }
+            }
+          ]
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_container_node_pool.spot",
+      "mode": "managed",
+      "type": "google_container_node_pool",
+      "name": "spot",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "cluster": "platform",
+          "location": "us-central1",
+          "name": "spot",
+          "autoscaling": [
+            {
+              "min_node_count": 2,
+              "max_node_count": 10,
+              "location_policy": "ANY"
+            }
+          ],
+          "node_config": [
+            {
+              "machine_type": "e2-standard-4",
+              "spot": true,
+              "resource_labels": {
+                "team": "platform",
+                "cost-centre": "eng-infra"
+              }
+            }
+          ]
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_compute_instance.bastion",
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "bastion",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["delete"],
+        "before": {
+          "machine_type": "e2-small",
+          "name": "bastion",
+          "zone": "us-central1-a",
+          "labels": {
+            "team": "platform"
+          }
+        },
+        "after": null,
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": false
+      }
+    },
+    {
+      "address": "google_compute_instance.legacy_runner",
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "legacy_runner",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "machine_type": "n2-standard-4",
+          "name": "legacy-runner",
+          "zone": "us-central1-a",
+          "labels": {
+            "team": "ci"
+          },
+          "boot_disk": [
+            {
+              "auto_delete": false,
+              "initialize_params": [
+                {
+                  "size": 200,
+                  "type": "pd-balanced"
+                }
+              ]
+            }
+          ]
+        },
+        "after": {
+          "machine_type": "e2-standard-4",
+          "name": "legacy-runner",
+          "zone": "us-central1-a",
+          "labels": {
+            "team": "ci"
+          },
+          "boot_disk": [
+            {
+              "auto_delete": false,
+              "initialize_params": [
+                {
+                  "size": 200,
+                  "type": "pd-balanced"
+                }
+              ]
+            }
+          ]
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_compute_instance.ephemeral_runner",
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "ephemeral_runner",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "ephemeral-runner",
+          "zone": "us-central1-a"
+        },
+        "after_unknown": {
+          "id": true,
+          "machine_type": true,
+          "labels": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_compute_disk.data",
+      "mode": "managed",
+      "type": "google_compute_disk",
+      "name": "data",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "data",
+          "size": 500,
+          "type": "pd-balanced",
+          "zone": "us-central1-a",
+          "labels": {
+            "team": "data"
+          }
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_storage_bucket.artifacts",
+      "mode": "managed",
+      "type": "google_storage_bucket",
+      "name": "artifacts",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "location": "US",
+          "name": "example-platform-artifacts",
+          "storage_class": "STANDARD"
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_bigquery_dataset.analytics",
+      "mode": "managed",
+      "type": "google_bigquery_dataset",
+      "name": "analytics",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "dataset_id": "analytics",
+          "location": "US"
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_project_iam_member.ci_deployer",
+      "mode": "managed",
+      "type": "google_project_iam_member",
+      "name": "ci_deployer",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "member": "serviceAccount:ci@example-platform-staging.iam.gserviceaccount.com",
+          "role": "roles/container.developer"
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_compute_firewall.allow_health_checks",
+      "mode": "managed",
+      "type": "google_compute_firewall",
+      "name": "allow_health_checks",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["no-op"],
+        "before": {
+          "name": "allow-health-checks",
+          "network": "platform"
+        },
+        "after": {
+          "name": "allow-health-checks",
+          "network": "platform"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "incident_io_team.platform",
+      "mode": "managed",
+      "type": "incident_io_team",
+      "name": "platform",
+      "provider_name": "registry.terraform.io/incident-io/incident",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "Platform"
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "datadog_monitor.api_latency",
+      "mode": "managed",
+      "type": "datadog_monitor",
+      "name": "api_latency",
+      "provider_name": "registry.terraform.io/DataDog/datadog",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "API latency",
+          "type": "metric alert"
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

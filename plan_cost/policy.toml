@@ -1,0 +1,47 @@
+# What this tool blocks on, and where.
+#
+# Every arguable number lives here rather than in code, because what counts as
+# "expensive enough to stop for" IS the argument, and a reviewer who cannot see
+# it has to take the gate on faith.
+#
+# Change these and re-run. No code edit required.
+
+[gate]
+# The monthly increase, in US dollars, above which a change is worth stopping
+# for. Quoted as a string so it parses to an exact decimal rather than a float.
+#
+# Overridden by --budget-json, where the number comes from your own budget
+# instead of from this file.
+threshold_usd_month = "250.00"
+
+[environments]
+# What to do when a rule has fired at a blocking severity AND the monthly
+# increase is over the threshold.
+#
+# staging blocks and production reports. That is the opposite of the obvious
+# arrangement and it is deliberate: gate where a fix is still cheap. A cost
+# tool standing in front of an urgent production change does more damage than
+# the change it is objecting to.
+#
+# An environment absent from this table is an error, not a default. Silence
+# must never resolve to the lenient path.
+staging = "block"
+production = "report"
+
+[rules]
+# block  fires the gate, when the threshold is breached as well.
+# review is always printed and never blocks.
+#
+# Only the first is set to block. A node pool with no autoscaling is capacity
+# that can never be reclaimed, which is the driver cost_agent finds on bills
+# sixty days later. The other two are real and worth seeing, but stopping a
+# build over a missing label teaches people to work around the gate.
+node_pool_without_autoscaling = "block"
+no_billing_labels = "review"
+boot_disk_outlives_instance = "review"
+
+[prices]
+# Prices older than this warn on standard error. Cloud list prices move rarely,
+# so this is not about accuracy drifting week to week. It is about noticing a
+# table nobody is maintaining.
+stale_after_days = 90

@@ -1,0 +1,102 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "variables": {
+    "environment": {
+      "value": "staging"
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "incident_io_team.payments",
+      "mode": "managed",
+      "type": "incident_io_team",
+      "name": "payments",
+      "provider_name": "registry.terraform.io/incident-io/incident",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "Payments"
+        },
+        "after_unknown": {"id": true},
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "incident_io_escalation_path.payments_primary",
+      "mode": "managed",
+      "type": "incident_io_escalation_path",
+      "name": "payments_primary",
+      "provider_name": "registry.terraform.io/incident-io/incident",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "Payments primary"
+        },
+        "after_unknown": {"id": true},
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "datadog_monitor.checkout_errors",
+      "mode": "managed",
+      "type": "datadog_monitor",
+      "name": "checkout_errors",
+      "provider_name": "registry.terraform.io/DataDog/datadog",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "name": "Checkout errors",
+          "query": "sum(last_5m):sum:checkout.errors{*} > 20"
+        },
+        "after": {
+          "name": "Checkout errors",
+          "query": "sum(last_5m):sum:checkout.errors{*} > 10"
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "github_branch_protection.main",
+      "mode": "managed",
+      "type": "github_branch_protection",
+      "name": "main",
+      "provider_name": "registry.terraform.io/integrations/github",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "pattern": "main",
+          "required_approving_review_count": 2
+        },
+        "after_unknown": {"id": true},
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "github_repository.platform_runbooks",
+      "mode": "managed",
+      "type": "github_repository",
+      "name": "platform_runbooks",
+      "provider_name": "registry.terraform.io/integrations/github",
+      "change": {
+        "actions": ["delete"],
+        "before": {
+          "name": "platform-runbooks",
+          "visibility": "private"
+        },
+        "after": null,
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": false
+      }
+    }
+  ]
+}
