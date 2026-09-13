@@ -1,0 +1,112 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "variables": {
+    "environment": {
+      "value": "staging"
+    },
+    "project": {
+      "value": "example-platform-staging"
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "google_compute_instance.api",
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "api",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "machine_type": "e2-medium",
+          "name": "api",
+          "zone": "us-central1-a",
+          "labels": {
+            "team": "platform",
+            "cost-centre": "eng-infra"
+          },
+          "boot_disk": [
+            {
+              "auto_delete": true,
+              "initialize_params": [
+                {
+                  "size": 50,
+                  "type": "pd-balanced"
+                }
+              ]
+            }
+          ]
+        },
+        "after": {
+          "machine_type": "e2-standard-4",
+          "name": "api",
+          "zone": "us-central1-a",
+          "labels": {
+            "team": "platform",
+            "cost-centre": "eng-infra"
+          },
+          "boot_disk": [
+            {
+              "auto_delete": true,
+              "initialize_params": [
+                {
+                  "size": 50,
+                  "type": "pd-balanced"
+                }
+              ]
+            }
+          ]
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_compute_disk.logs",
+      "mode": "managed",
+      "type": "google_compute_disk",
+      "name": "logs",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "api-logs",
+          "size": 100,
+          "type": "pd-balanced",
+          "zone": "us-central1-a",
+          "labels": {
+            "team": "platform"
+          }
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_project_iam_member.api_metrics_writer",
+      "mode": "managed",
+      "type": "google_project_iam_member",
+      "name": "api_metrics_writer",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "member": "serviceAccount:api@example-platform-staging.iam.gserviceaccount.com",
+          "role": "roles/monitoring.metricWriter"
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

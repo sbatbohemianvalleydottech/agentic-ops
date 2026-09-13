@@ -1,0 +1,114 @@
+# SYNTHETIC RATES. Do not quote these at anybody.
+#
+# Every number here is invented, and deliberately round, so the arithmetic in a
+# demo can be checked in your head: e2-standard-4 at $0.20 an hour is $146.00 a
+# month at 730 hours, so eight of them is $1,168.00.
+#
+# The shipped table, plan_cost/prices.toml, is the opposite: fewer rows, every
+# one carrying the URL it came from and the date it was read. Use that one for
+# anything real, or replace it with your own rate card.
+#
+# Run the demo plans against this file with:
+#   python -m plan_cost --plan <a demo plan> --prices plan_cost/fixtures/demo/prices.demo.toml
+
+[[price]]
+key      = "google/machine-type/e2-small/us-central1"
+unit     = "hour"
+amount   = "0.02"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/machine-type/e2-medium/us-central1"
+unit     = "hour"
+amount   = "0.05"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/machine-type/e2-standard-4/us-central1"
+unit     = "hour"
+amount   = "0.20"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/machine-type/n2-standard-4/us-central1"
+unit     = "hour"
+amount   = "0.30"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/machine-type/n2-standard-8/us-central1"
+unit     = "hour"
+amount   = "0.60"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+# A second region, to show that keys are regional and nothing falls back to a
+# neighbour's rate. Note the European rate is deliberately different.
+[[price]]
+key      = "google/machine-type/e2-standard-4/europe-west1"
+unit     = "hour"
+amount   = "0.22"
+currency = "USD"
+region   = "europe-west1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/disk/pd-standard/us-central1"
+unit     = "GB-month"
+amount   = "0.05"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/disk/pd-balanced/us-central1"
+unit     = "GB-month"
+amount   = "0.10"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/disk/pd-ssd/us-central1"
+unit     = "GB-month"
+amount   = "0.20"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/disk/pd-balanced/europe-west1"
+unit     = "GB-month"
+amount   = "0.11"
+currency = "USD"
+region   = "europe-west1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""

@@ -49,10 +49,11 @@ def render(
     decision: Decision,
     table: PriceTable,
     policy: Policy,
+    prices_path: Path,
     threshold_note: str = "",
 ) -> str:
     lines = [f"PLAN COST  {plan_path}", ""]
-    lines += _heading(priced, decision, table)
+    lines += _heading(priced, decision, table, prices_path)
     lines += _priced(priced)
     lines += _not_counted(priced.coverage)
     lines += _findings(findings)
@@ -61,12 +62,18 @@ def render(
     return "\n".join(line.rstrip() for line in lines)
 
 
-def _heading(priced: PricedPlan, decision: Decision, table: PriceTable) -> list[str]:
+def _heading(
+    priced: PricedPlan, decision: Decision, table: PriceTable, prices_path: Path
+) -> list[str]:
     lines = [f"  Environment      {decision.environment} (from {decision.environment_source})"]
     if priced.has_figure:
         taken = f", oldest row taken {table.oldest}" if table.oldest else ""
         lines.append(f"  Monthly change   {money(priced.total)}")
-        lines.append(f"                   730 hours per month, list prices{taken}")
+        # Name the table rather than calling its contents list prices. What
+        # kind of rates they are is a per row fact, and the table carries it.
+        lines.append(
+            f"                   730 hours per month, rates from {prices_path.name}{taken}"
+        )
         # Said every run, because a reader looking at a node pool figure will
         # otherwise assume the disks under it are in there.
         lines.append("                   compute priced by machine type; storage attached")
@@ -86,15 +93,19 @@ def _priced(priced: PricedPlan) -> list[str]:
 
 
 def _not_counted(coverage: Summary) -> list[str]:
-    lines = ["  Not counted"]
+    lines = []
     for bucket in UNCOUNTED:
         count = coverage.counts.get(bucket, 0)
         if not count:
             continue
         lines.append(f"    {LABELS[bucket]:<21}{count:>3}   {_why(coverage, bucket)}")
+    # A heading with nothing under it reads as a bug, and on a plan where
+    # everything priced there is genuinely nothing to say here.
+    if lines:
+        lines = ["  Not counted", *lines, ""]
     total = len(coverage.buckets)
     counted = sum(coverage.counts.values())
-    return lines + ["", f"  {total} resource changes, {counted} accounted for.", ""]
+    return lines + [f"  {total} resource changes, {counted} accounted for.", ""]
 
 
 def _why(coverage: Summary, bucket: Bucket) -> str:

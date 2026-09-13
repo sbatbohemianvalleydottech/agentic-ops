@@ -1,0 +1,103 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "variables": {
+    "environment": {
+      "value": "production"
+    },
+    "project": {
+      "value": "example-platform-prod"
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "google_compute_instance.api",
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "api",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "machine_type": "e2-medium",
+          "name": "api",
+          "zone": "us-central1-a",
+          "labels": {
+            "team": "platform",
+            "cost-centre": "eng-infra"
+          },
+          "boot_disk": [
+            {
+              "auto_delete": true,
+              "initialize_params": [
+                {
+                  "size": 50,
+                  "type": "pd-balanced"
+                }
+              ]
+            }
+          ]
+        },
+        "after": {
+          "machine_type": "e2-standard-4",
+          "name": "api",
+          "zone": "us-central1-a",
+          "labels": {
+            "team": "platform",
+            "cost-centre": "eng-infra"
+          },
+          "boot_disk": [
+            {
+              "auto_delete": true,
+              "initialize_params": [
+                {
+                  "size": 50,
+                  "type": "pd-balanced"
+                }
+              ]
+            }
+          ]
+        },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "google_compute_instance.worker_eu",
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "worker_eu",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "machine_type": "e2-standard-4",
+          "name": "worker-eu",
+          "zone": "europe-west1-b",
+          "labels": {
+            "team": "platform",
+            "cost-centre": "eng-infra"
+          },
+          "boot_disk": [
+            {
+              "auto_delete": true,
+              "initialize_params": [
+                {
+                  "size": 50,
+                  "type": "pd-balanced"
+                }
+              ]
+            }
+          ]
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

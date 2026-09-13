@@ -114,6 +114,7 @@ def main(argv: list[str] | None = None) -> int:
             decision=decision,
             table=table,
             policy=policy,
+            prices_path=args.prices,
             threshold_note=threshold_note,
         )
     )

@@ -1,0 +1,122 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "variables": {
+    "environment": {
+      "value": "staging"
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "incident_schedule_rotation.platform_primary",
+      "mode": "managed",
+      "type": "incident_schedule_rotation",
+      "name": "platform_primary",
+      "provider_name": "registry.terraform.io/incident-io/incident",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "name": "Primary",
+          "schedule_id": "01HQ3M8WZ5J0KQ7X2N4V6B8D0F",
+          "first_interval_starts_at": "2026-01-05T09:00:00Z",
+          "handovers": [
+            {
+              "interval": 1,
+              "interval_type": "weekly"
+            }
+          ],
+          "users": [
+            "01HQ3M9A1B2C3D4E5F6G7H8J9K",
+            "01HQ3M9B2C3D4E5F6G7H8J9K0L"
+          ],
+          "scheduling_mode": "sequential"
+        },
+        "after": {
+          "name": "Primary",
+          "schedule_id": "01HQ3M8WZ5J0KQ7X2N4V6B8D0F",
+          "first_interval_starts_at": "2026-01-05T09:00:00Z",
+          "handovers": [
+            {
+              "interval": 1,
+              "interval_type": "daily"
+            }
+          ],
+          "users": [
+            "01HQ3M9A1B2C3D4E5F6G7H8J9K",
+            "01HQ3M9B2C3D4E5F6G7H8J9K0L",
+            "01HQ3M9C3D4E5F6G7H8J9K0L1M"
+          ],
+          "scheduling_mode": "fair",
+          "working_intervals": [
+            {
+              "weekday": "monday",
+              "start_time": "09:00",
+              "end_time": "18:00"
+            },
+            {
+              "weekday": "tuesday",
+              "start_time": "09:00",
+              "end_time": "18:00"
+            }
+          ]
+        },
+        "after_unknown": {
+          "effective_from": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "incident_schedule.platform",
+      "mode": "managed",
+      "type": "incident_schedule",
+      "name": "platform",
+      "provider_name": "registry.terraform.io/incident-io/incident",
+      "change": {
+        "actions": ["delete", "create"],
+        "before": {
+          "id": "01HQ3M8WZ5J0KQ7X2N4V6B8D0F",
+          "name": "Platform on-call",
+          "timezone": "Europe/London",
+          "team_ids": ["01HQ3M7T0V1W2X3Y4Z5A6B7C8D"]
+        },
+        "after": {
+          "name": "Platform on-call",
+          "timezone": "Europe/Dublin",
+          "team_ids": ["01HQ3M7T0V1W2X3Y4Z5A6B7C8D"]
+        },
+        "after_unknown": {
+          "id": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {},
+        "replace_paths": [["timezone"]]
+      }
+    },
+    {
+      "address": "incident_schedule.payments",
+      "mode": "managed",
+      "type": "incident_schedule",
+      "name": "payments",
+      "provider_name": "registry.terraform.io/incident-io/incident",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "Payments on-call",
+          "timezone": "Europe/London",
+          "holidays_public_config": {
+            "country_codes": ["GB", "IE"]
+          }
+        },
+        "after_unknown": {
+          "id": true,
+          "team_ids": true
+        },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

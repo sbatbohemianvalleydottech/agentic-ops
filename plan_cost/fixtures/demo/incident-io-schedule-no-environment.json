@@ -1,0 +1,51 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.9.8",
+  "resource_changes": [
+    {
+      "address": "incident_schedule_rotation.platform_primary",
+      "mode": "managed",
+      "type": "incident_schedule_rotation",
+      "name": "platform_primary",
+      "provider_name": "registry.terraform.io/incident-io/incident",
+      "change": {
+        "actions": ["update"],
+        "before": {
+          "name": "Primary",
+          "schedule_id": "01HQ3M8WZ5J0KQ7X2N4V6B8D0F",
+          "first_interval_starts_at": "2026-01-05T09:00:00Z",
+          "handovers": [
+            {
+              "interval": 1,
+              "interval_type": "weekly"
+            }
+          ],
+          "users": [
+            "01HQ3M9A1B2C3D4E5F6G7H8J9K",
+            "01HQ3M9B2C3D4E5F6G7H8J9K0L"
+          ]
+        },
+        "after": {
+          "name": "Primary",
+          "schedule_id": "01HQ3M8WZ5J0KQ7X2N4V6B8D0F",
+          "first_interval_starts_at": "2026-01-05T09:00:00Z",
+          "handovers": [
+            {
+              "interval": 12,
+              "interval_type": "hourly"
+            }
+          ],
+          "users": [
+            "01HQ3M9A1B2C3D4E5F6G7H8J9K",
+            "01HQ3M9B2C3D4E5F6G7H8J9K0L"
+          ]
+        },
+        "after_unknown": {
+          "effective_from": true
+        },
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

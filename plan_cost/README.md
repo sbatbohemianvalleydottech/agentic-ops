@@ -30,7 +30,7 @@ PLAN COST  plan_cost/fixtures/estate/plan.json
 
   Environment      staging (from the --env flag, matching the plan)
   Monthly change   +$432.89
-                   730 hours per month, list prices, oldest row taken 2026-09-13
+                   730 hours per month, rates from prices.toml, oldest row taken 2026-09-13
                    compute priced by machine type; storage attached
                    inside an instance or node pool is not included
 
@@ -198,6 +198,23 @@ lowest threshold percentage, which is the line the organisation itself chose to 
 about. It shows that arithmetic so you can draw the line somewhere else, prints the budget's
 filter so you can see what it covers, and states plainly that it does not know current
 spend. Two budgets and no name is an error rather than a pick.
+
+## Try every path in one sitting
+
+[`fixtures/demo/`](fixtures/demo/README.md) holds seven plans and a synthetic price table,
+so you can drive the gate down every path it has with no Terraform binary and no credential:
+blocked in staging, the same change reported in production, a change that is expensive but
+clean, one that sits between the policy threshold and your budget's line so the budget
+changes the answer, an on-call rota change where nothing is priceable, and a plan with no
+environment that refuses to judge at all.
+
+```bash
+.venv/bin/python -m plan_cost --plan plan_cost/fixtures/demo/staging-over-budget.json \
+  --prices plan_cost/fixtures/demo/prices.demo.toml
+```
+
+Every exit code in that guide is asserted in the test suite, so the demo fails the build
+rather than failing in front of an audience.
 
 ## What it does not do
 
