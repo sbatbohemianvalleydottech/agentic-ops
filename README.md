@@ -1,7 +1,7 @@
 # agentic-ops
 
-Governance primitives for agents that make consequential judgements, and two agents built
-on them.
+Governance primitives for agents that make consequential judgements, the two agents built
+on them, and one tool that deliberately calls no model at all.
 
 ## One idea, applied three times
 
@@ -24,6 +24,11 @@ a verdict is missing                   -> HALT  incomplete
 a grade is off the rubric's scale      -> HALT  invalid verdict
 ```
 
+The third tool is the counterexample, and it belongs to the same argument. `plan_cost`
+prices a Terraform plan and checks it against fixed rules without calling a model once,
+because a price is arithmetic and a missing autoscaling block is a fact about a document.
+Knowing when not to reach for a model is the harder half of the claim.
+
 ## What is here
 
 | Directory | What it does |
@@ -32,9 +37,10 @@ a grade is off the rubric's scale      -> HALT  invalid verdict
 | **[`ledger`](ledger/README.md)** | Append-only JSONL cost ledger. What any decision cost, after the fact |
 | **[`cost_agent`](cost_agent/README.md)** | Finds the structural reasons a cloud bill is what it is, rather than ranking line items by size |
 | **[`rca_agent`](rca_agent/README.md)** | Catches the incident review that reads well and says nothing |
+| **[`plan_cost`](plan_cost/README.md)** | Prices a Terraform plan before it merges and blocks in staging, with no model in it |
 | **[`setup`](setup/README.md)** | The Claude Code setup this was built with, as steps your own Claude Code can run |
 
-`ensemble` and `ledger` import nothing from either agent. That is enforced by a contract
+`ensemble` and `ledger` import nothing from any agent. That is enforced by a contract
 test which discovers agent packages from the directory tree, so an agent added later is
 covered without anyone remembering.
 
@@ -42,7 +48,7 @@ covered without anyone remembering.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/python -m pytest                    # 219 tests, ~1.5s
+.venv/bin/python -m pytest                    # 344 tests, ~1.5s
 
 .venv/bin/python -m cost_agent \
   --costs cost_agent/fixtures/estate_a/costs.csv \
@@ -50,6 +56,9 @@ uv venv && uv pip install -e ".[dev]"
 
 .venv/bin/python -m rca_agent \
   --corpus rca_agent/fixtures/corpus --as-of 2026-09-01 --completion
+
+.venv/bin/python -m plan_cost \
+  --plan plan_cost/fixtures/estate/plan.json --env staging   # exits 1, on purpose
 ```
 
 **Everything a sceptical reader would attack runs offline and free.** Only genuine
@@ -119,4 +128,7 @@ utilisation was the only signal it had for "should this exist". That is written 
   workspace-scoped key, an unfunded account, and an empty value in `.env` that a library
   loaded behind us. Each cost a full run to find. That is why `--check` exists, and it is a
   fair description of how much of agentic infrastructure is credentials rather than models.
+- **`plan_cost` has never called a live billing API.** Its catalogue and budget paths were
+  built against the current documentation and tested against recorded responses, and the
+  README says so rather than implying a live integration.
 - All fixtures are synthetic. No real estate, incident or employee data is present.
