@@ -16,13 +16,19 @@ So every judgement here goes through two independent raters **and** a judge that
 learns whether they agreed. Disagreement halts. Nothing is averaged, rounded, or decided
 by majority.
 
+These are checked in order, and the first line that matches decides:
+
 ```
-raters agree   AND judge: justified    -> PROCEED
-raters differ                          -> HALT  disagreement
-raters agree   AND judge: unjustified  -> HALT  correlated failure
+fewer than two raters                  -> refuses to run, a misconfiguration
 a verdict is missing                   -> HALT  incomplete
 a grade is off the rubric's scale      -> HALT  invalid verdict
+raters differ                          -> HALT  disagreement
+raters agree   AND judge: unjustified  -> HALT  correlated failure
+raters agree   AND judge: justified    -> PROCEED
 ```
+
+Absence is checked first: every rule below it would otherwise read a partial ensemble as a
+healthy one.
 
 The third tool is the counterexample, and it belongs to the same argument. `plan_cost`
 prices a Terraform plan and checks it against fixed rules without calling a model once,
