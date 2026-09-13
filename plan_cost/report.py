@@ -67,6 +67,10 @@ def _heading(priced: PricedPlan, decision: Decision, table: PriceTable) -> list[
         taken = f", oldest row taken {table.oldest}" if table.oldest else ""
         lines.append(f"  Monthly change   {money(priced.total)}")
         lines.append(f"                   730 hours per month, list prices{taken}")
+        # Said every run, because a reader looking at a node pool figure will
+        # otherwise assume the disks under it are in there.
+        lines.append("                   compute priced by machine type; storage attached")
+        lines.append("                   inside an instance or node pool is not included")
     else:
         lines.append("  Monthly change   nothing here can be priced")
     return lines + [""]
