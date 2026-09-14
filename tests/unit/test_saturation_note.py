@@ -16,7 +16,6 @@ counting them would inflate the claim, and unmatched resources are present in
 one input only.
 """
 
-from dataclasses import replace
 from decimal import Decimal
 
 import pytest
