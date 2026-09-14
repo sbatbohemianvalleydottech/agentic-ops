@@ -90,8 +90,38 @@ class Finding:
         return ROOT_CAUSE_OF.get(self.rule)
 
 
+@dataclass(frozen=True)
+class Gap:
+    """A rule that could not run on a resource, and the field it needed.
+
+    Recorded by the classifier at the branch that decides the rule cannot run,
+    rather than derived from a table of rules and their inputs. A table would be
+    a second statement of the conditions below and would drift from them the
+    first time a rule changed.
+
+    Distinct from a finding of `UNASSESSABLE`, which says a resource could not be
+    judged at all. This says one check could not run, and the resource may still
+    have been judged by every other check.
+    """
+
+    resource_id: str
+    rule: Rule
+    field: str
+
+
 def _needs_utilisation(resource: Resource) -> bool:
     return resource.kind in {"compute", "database", "cache", "queue"}
+
+
+def _has_tiers(resource: Resource) -> bool:
+    """Whether a storage class is a thing this kind of resource even has.
+
+    A virtual machine has no hot or cold tier, so reporting `cold_on_hot_tier`
+    as unable to run on one would be noise, and a report full of inapplicable
+    checks is the report people learn to skip. Same shape and same reason as
+    `_needs_utilisation` above: `kind`, never a service or product name.
+    """
+    return resource.kind == "storage"
 
 
 def _finding(resource: Resource, rule: Rule, **observed) -> Finding:
@@ -105,8 +135,12 @@ def _finding(resource: Resource, rule: Rule, **observed) -> Finding:
 
 def _classify_one(
     resource: Resource, thresholds: Thresholds, as_of: datetime
-) -> list[Finding]:
+) -> tuple[list[Finding], list[Gap]]:
     findings: list[Finding] = []
+    gaps: list[Gap] = []
+
+    def gap(rule: Rule, field: str) -> None:
+        gaps.append(Gap(resource_id=resource.resource_id, rule=rule, field=field))
 
     if resource.decommission_at is not None:
         remaining = (resource.decommission_at - as_of).days
@@ -132,17 +166,34 @@ def _classify_one(
                      attached=False, age_days=resource.age_days)
         )
 
-    if (
+    if resource.tier is None:
+        # Nothing is known about where the data sits, so the rule never got as
+        # far as asking how long since it was read. Only a gap where a tier is
+        # a property the resource could have had.
+        if _has_tiers(resource):
+            gap(Rule.COLD_ON_HOT_TIER, "tier")
+    elif resource.tier in HOT_TIERS and resource.last_access is None:
+        gap(Rule.COLD_ON_HOT_TIER, "last_access")
+    elif (
         resource.tier in HOT_TIERS
-        and resource.last_access is not None
         and (as_of - resource.last_access).days > thresholds.cold_after_days
     ):
         findings.append(
             _finding(resource, Rule.COLD_ON_HOT_TIER, tier=resource.tier,
                      days_since_access=(as_of - resource.last_access).days)
         )
+    # A tier that is present and not hot is not a gap. The rule ran, and the
+    # answer was no.
 
     utilisation = resource.utilisation_avg
+
+    if utilisation is None and _needs_utilisation(resource):
+        # One absent field stops three rules. Recorded per rule, because "idle
+        # could not run" is what a reader needs, not "a field was missing".
+        # A bucket has no utilisation to be missing, so this is only a gap where
+        # the number was expected.
+        for rule in (Rule.IDLE, Rule.UNDER_UTILISED, Rule.NO_COMMITMENT):
+            gap(rule, "utilisation_avg")
 
     if utilisation is None and _needs_utilisation(resource):
         # Cannot be called under-utilised on absent evidence, and must not be
@@ -166,6 +217,17 @@ def _classify_one(
                          commitment_covered=False)
             )
 
+    # Both read capacity numbers, which only a resource that runs a workload
+    # has. On a bucket their absence is the shape of the thing, not a gap.
+    if _needs_utilisation(resource):
+        for rule, pair in (
+            (Rule.OVERSIZED, ("provisioned", "observed_peak")),
+            (Rule.PEAK_SHAPED_ALWAYS_ON, ("weekday_utilisation", "weekend_utilisation")),
+        ):
+            for field in pair:
+                if getattr(resource, field) is None:
+                    gap(rule, field)
+
     if resource.provisioned and resource.observed_peak:
         ratio = resource.provisioned / resource.observed_peak
         if ratio > thresholds.oversize_ratio:
@@ -184,12 +246,22 @@ def _classify_one(
     if not any(key in resource.tags for key in thresholds.owner_tag_keys):
         findings.append(_finding(resource, Rule.UNTAGGED, tags=dict(resource.tags)))
 
-    return findings
+    return findings, gaps
+
+
+def classify_with_gaps(
+    inputs: Inputs, thresholds: Thresholds, as_of: datetime
+) -> tuple[list[Finding], list[Gap]]:
+    """Findings, and the checks that could not run for want of a field."""
+    findings: list[Finding] = []
+    gaps: list[Gap] = []
+    for resource in inputs.matched:
+        found, missed = _classify_one(resource, thresholds, as_of)
+        findings += found
+        gaps += missed
+    return findings, gaps
 
 
 def classify(inputs: Inputs, thresholds: Thresholds, as_of: datetime) -> list[Finding]:
-    return [
-        finding
-        for resource in inputs.matched
-        for finding in _classify_one(resource, thresholds, as_of)
-    ]
+    """Findings only. Kept so nothing that calls it today has to change."""
+    return classify_with_gaps(inputs, thresholds, as_of)[0]

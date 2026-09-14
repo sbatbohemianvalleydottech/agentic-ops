@@ -9,7 +9,7 @@ matching several is attributed to the highest and the alternative is recorded.
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from .classify import Finding, RootCause, Rule
+from .classify import Finding, Gap, RootCause, Rule
 from .inputs import Inputs, Unmatched
 from .thresholds import Thresholds
 
@@ -82,10 +82,17 @@ class Analysis:
     # Every resource from either input. Used to assert nothing was dropped.
     resource_count: int = 0
     findings_by_resource: dict = field(default_factory=dict)
+    # Checks that could not run for want of a field, and the number of resources
+    # the classifier looked at, which is what they are counted against.
+    gaps: tuple[Gap, ...] = ()
+    assessed_count: int = 0
 
 
 def build_analysis(
-    findings: list[Finding], inputs: Inputs, thresholds: Thresholds
+    findings: list[Finding],
+    inputs: Inputs,
+    thresholds: Thresholds,
+    gaps: list[Gap] | tuple[Gap, ...] = (),
 ) -> Analysis:
     multiplier = thresholds.annualisation_multiplier
     cost_of = {r.resource_id: r.period_cost for r in inputs.matched}
@@ -176,4 +183,6 @@ def build_analysis(
         healthy=tuple(healthy),
         resource_count=len(inputs.matched) + len(inputs.unmatched),
         findings_by_resource=by_resource,
+        gaps=tuple(gaps),
+        assessed_count=len(inputs.matched),
     )

@@ -10,7 +10,7 @@ from datetime import datetime
 from decimal import Decimal
 from pathlib import Path
 
-from .classify import classify
+from .classify import classify_with_gaps
 from .drivers import Analysis, build_analysis
 from .inputs import load_inputs
 from .savings import estimate_savings
@@ -28,8 +28,8 @@ def analyse(
     thresholds = thresholds or load_thresholds(thresholds_path)
 
     inputs = load_inputs(cost_export_path, inventory_path)
-    findings = classify(inputs, thresholds, as_of)
-    analysis = build_analysis(findings, inputs, thresholds)
+    findings, gaps = classify_with_gaps(inputs, thresholds, as_of)
+    analysis = build_analysis(findings, inputs, thresholds, gaps=gaps)
 
     annual_by_resource = {
         resource.resource_id: resource.period_cost * thresholds.annualisation_multiplier

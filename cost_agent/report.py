@@ -125,6 +125,43 @@ def _savings_total(analysis) -> list[str]:
     return lines
 
 
+def _unrun_checks(analysis) -> list[str]:
+    """Which rules never evaluated anything, and what they needed.
+
+    The same distinction the sections above keep, applied to inputs. A rule that
+    ran and found nothing, and a rule that never ran, are different claims, and
+    only the first is visible to a reader without this.
+
+    Counted in resources rather than gaps: one absent field stops three rules,
+    and reporting that as three would inflate what is a single hole in the data.
+    """
+    lines = [
+        "",
+        "Checks that could not run",
+        "  A rule that ran and found nothing, and a rule that never ran, are",
+        "  different claims. These are the second kind.",
+    ]
+    if not analysis.gaps:
+        return lines + ["  none. Every rule had the data it needed on every resource."]
+
+    by_rule: dict[str, dict] = {}
+    for gap in analysis.gaps:
+        entry = by_rule.setdefault(gap.rule.value, {"fields": {}, "resources": set()})
+        # A dict rather than a set, so the fields print in the order the
+        # classifier looked for them and the same estate reports the same way.
+        entry["fields"][gap.field] = None
+        entry["resources"].add(gap.resource_id)
+
+    for rule in sorted(by_rule):
+        entry = by_rule[rule]
+        fields = ", ".join(entry["fields"])
+        lines.append(
+            f"  - {rule:<24} needs {fields}: absent on "
+            f"{len(entry['resources'])} of {analysis.assessed_count}"
+        )
+    return lines
+
+
 def render_report(
     analysis: Analysis, models: tuple[str, str, str] | None = None
 ) -> str:
@@ -196,6 +233,8 @@ def render_report(
             lines.append(f"  - {item.resource_id} (only in {item.present_in}, {cost})")
     else:
         lines.append("  none.")
+
+    lines += _unrun_checks(analysis)
 
     # Rendered whether or not anything is in it, like every section above.
     # An absent heading and "checked, found nothing" are different claims.
