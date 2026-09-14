@@ -68,7 +68,7 @@ clone before it was written down.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/python -m pytest                    # 444 passed, 7 skipped, ~0.4s
+.venv/bin/python -m pytest                    # 453 passed, 7 skipped, ~0.5s
 
 .venv/bin/python -m cost_agent \
   --costs cost_agent/fixtures/estate_a/costs.csv \
@@ -95,7 +95,7 @@ The default install deliberately leaves the provider library out, so **the paid 
 one more install**. Skip it and every paid command stops with `litellm is not installed`:
 
 ```bash
-uv pip install -e ".[dev,providers]"   # adds litellm; the suite goes 444+7 -> 451
+uv pip install -e ".[dev,providers]"   # adds litellm; the suite goes 453+7 -> 460
 cp .env.example .env                   # then paste your keys into .env
 ```
 
@@ -142,6 +142,9 @@ and CI enforces the one that is mechanically checkable.
 
 Test-first throughout. No production code without a failing test watched failing first.
 
+Coverage is a floor in CI at 88%, currently 89.6% across 460 tests. The two paid demos sit at
+0% and are counted anyway, because excluding them would be measuring the easy part.
+
 **The documents are tested the same way the code is.** Each README is handed to a reader with
 no other context, working in a fresh clone, told to run what it says and record where it
 breaks. On 14 September that disproved five claims, three of which were defects in the code
@@ -157,7 +160,7 @@ fix was to take a stated end-of-life date as input rather than infer one.
 
 **There is no golden set, and it is the next thing to build.** The gate halts when two raters
 disagree, and nothing anywhere measures whether the grade they agreed on was *right*. Every
-free path is covered by 451 tests. The paid paths, which are the ones that cost money and make
+free path is covered by 460 tests. The paid paths, which are the ones that cost money and make
 the judgements, are checked by running them and reading the output.
 
 That matters more than it sounds, because two independent runs of the same fixture on

@@ -54,6 +54,17 @@ jobs:
       - name: Confirm no adapter test was silently skipped
         run: pytest tests/unit/test_providers.py -v --no-header -rs | grep -qv SKIPPED
 
+      # A floor, not a target. It sits just under the current figure so that
+      # deleting a test to make a change pass shows up as a failure rather than
+      # as a slightly smaller number nobody reads. The two paid demos are 0% and
+      # counted anyway: excluding them would be measuring the easy part.
+      - name: Coverage
+        run: >
+          pytest -q
+          --cov=ci --cov=ensemble --cov=ledger
+          --cov=cost_agent --cov=rca_agent --cov=plan_cost
+          --cov-report=term-missing --cov-fail-under=88
+
   # The artifacts, run as a pipeline would run them. Until this existed,
   # plan_cost was a CI gate that had never once run in CI, and the only
   # evidence it gated anything was that its tests said so.

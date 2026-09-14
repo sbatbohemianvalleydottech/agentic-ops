@@ -297,6 +297,13 @@ The file only exists after a paid run, so on a fresh checkout that command raise
 `FileNotFoundError`, which is the correct answer to "what have I spent". Rows under `None`
 are from runs made before the rubric field existed, and they are why it exists.
 
+The wiring from `argv` into the paid layer is covered by
+`tests/integration/test_paid_paths_end_to_end.py`: 9 tests that drive this flag against a fake
+provider and a fake probe, with no network and no key. Coverage found that gap. Both CLIs sat
+under 56% because every test of the judgement logic called it directly rather than through the
+command line, which left the credential check, the preflight and the provider wiring untested.
+Those are the lines every failure of the first live run happened in.
+
 ## What it does not do
 
 - **It cannot tell a stable disagreement from a coin flip.** The same two models reached
