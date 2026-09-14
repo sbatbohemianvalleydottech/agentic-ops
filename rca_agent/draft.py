@@ -17,7 +17,8 @@ from datetime import datetime
 from pathlib import Path
 
 from ensemble.env import load_env, setting
-from ledger import Ledger
+from ensemble.providers import call_cost
+from ledger import DEFAULT_PATH, Ledger
 
 from .report import render_review
 from .rubric import load_rubric
@@ -167,13 +168,13 @@ def main() -> int:
         f"Draft saved to {drafted}."
     )
 
-    ledger = Ledger(Path(".ledger/calls.jsonl"))
+    ledger = Ledger(DEFAULT_PATH)
     ledger.record(
         decision_id="draft-demo", caller="rca_agent.draft", model=drafter,
         role="drafter",
         input_tokens=response.usage.prompt_tokens,
         output_tokens=response.usage.completion_tokens,
-        cost=0.0,
+        cost=call_cost(response),
     )
     return 0
 

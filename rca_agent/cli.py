@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ensemble.env import load_env, setting
-from ledger import Ledger
+from ledger import DEFAULT_PATH, Ledger
 
 from .completion import report_completion
 from .report import render_completion, render_review
@@ -77,7 +77,11 @@ def main(argv: list[str] | None = None) -> int:
         if missing:
             print(f"--check needs {' and '.join(missing)}.", file=sys.stderr)
             return 1
-        result = preflight(list(configured_models()))
+        result = preflight(
+            list(configured_models()),
+            ledger=Ledger(DEFAULT_PATH),
+            caller="rca_agent --check",
+        )
         print(result.render())
         return 0 if result.ok else 1
 
@@ -109,7 +113,10 @@ def main(argv: list[str] | None = None) -> int:
 
         # One cheap call each, before the expensive pass. Four separate
         # misconfigurations each cost a full run to discover before this existed.
-        check = preflight([rater_a, rater_b, judge_model])
+        ledger = Ledger(DEFAULT_PATH)
+        check = preflight(
+            [rater_a, rater_b, judge_model], ledger=ledger, caller="rca_agent"
+        )
         print(check.render(), file=sys.stderr)
         if not check.ok:
             print("Aborting before the run. Fix the above.", file=sys.stderr)
@@ -118,7 +125,6 @@ def main(argv: list[str] | None = None) -> int:
         from ensemble.progress import StderrProgress
 
         provider = LiteLLMProvider()
-        ledger = Ledger(Path(".ledger/calls.jsonl"))
         raters = [Rater(provider, rater_a), Rater(provider, rater_b)]
         judge = Rater(provider, judge_model)
         progress = StderrProgress()

@@ -93,10 +93,10 @@ def test_a_pricing_failure_does_not_discard_a_good_verdict(monkeypatch):
 
     monkeypatch.setattr(adapter, "completion", lambda **kwargs: _Response())
     monkeypatch.setattr(adapter, "supports_response_schema", lambda **kwargs: True)
+    # The seam is the shared cost helper now, not a symbol on this adapter.
     monkeypatch.setattr(
-        adapter,
-        "completion_cost",
-        lambda **kwargs: (_ for _ in ()).throw(RuntimeError("model not in map")),
+        "ensemble.providers._recompute",
+        lambda response: (_ for _ in ()).throw(RuntimeError("model not in map")),
     )
 
     call = adapter.LiteLLMProvider().grade(_rubric(), _evidence(), "some/model")
@@ -119,7 +119,7 @@ def test_the_workspace_header_is_sent_only_when_configured(monkeypatch):
 
     monkeypatch.setattr(adapter, "completion", fake_completion)
     monkeypatch.setattr(adapter, "supports_response_schema", lambda **kwargs: True)
-    monkeypatch.setattr(adapter, "completion_cost", lambda **kwargs: 0.001)
+    monkeypatch.setattr("ensemble.providers._recompute", lambda response: 0.001)
 
     monkeypatch.delenv("ANTHROPIC_WORKSPACE_ID", raising=False)
     adapter.LiteLLMProvider().grade(_rubric(), _evidence(), "anthropic/x")

@@ -14,10 +14,10 @@ import json
 import os
 
 import litellm
-from litellm import completion, completion_cost, supports_response_schema
+from litellm import completion, supports_response_schema
 
 from ..types import EvidenceBundle, JudgeVerdict, RaterVerdict, Rubric
-from . import Call, Usage, redact
+from . import Call, Usage, call_cost, redact
 
 # The vendor prints a banner and a support link on every error. Suppressed so a
 # halt report is legible. The error itself is not suppressed; it is carried
@@ -118,21 +118,10 @@ def _priced(response) -> Usage:
     verdict discarded over it. That is fabrication in the opposite direction:
     the system looking broken while working.
     """
-    try:
-        hidden = getattr(response, "_hidden_params", None) or {}
-        reported = hidden.get("response_cost")
-        cost = (
-            float(reported)
-            if reported is not None
-            else float(completion_cost(completion_response=response))
-        )
-    except Exception:
-        cost = 0.0
-
     return Usage(
         input_tokens=response.usage.prompt_tokens,
         output_tokens=response.usage.completion_tokens,
-        cost=cost,
+        cost=call_cost(response),
     )
 
 

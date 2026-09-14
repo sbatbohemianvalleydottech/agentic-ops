@@ -10,6 +10,7 @@ is not duplicated here.
 
 import sys
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import Protocol
 
 
@@ -26,10 +27,10 @@ class StderrProgress:
     you want to catch early.
     """
 
-    total_cost: float = 0.0
+    total_cost: Decimal = Decimal("0")
 
     def step(self, label: str, cost: float) -> None:
-        self.total_cost += cost
+        self.total_cost += Decimal(str(cost))
         print(
             f"  ... {label}  (${self.total_cost:.4f} so far)",
             file=sys.stderr,

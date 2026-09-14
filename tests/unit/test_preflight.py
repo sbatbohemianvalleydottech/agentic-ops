@@ -4,6 +4,8 @@ The first live run took four attempts against four different causes, each
 costing a full pass to discover. Every one of them would have surfaced here.
 """
 
+from decimal import Decimal
+
 from ensemble.preflight import ModelCheck, preflight
 
 
@@ -65,7 +67,7 @@ def test_the_total_cost_of_the_preflight_is_reported():
         probe=scripted({"a/one": (True, None), "b/two": (True, None)}),
     )
 
-    assert result.total_cost == 0.00004
+    assert result.total_cost == Decimal("0.00004")
 
 
 def test_duplicate_models_are_probed_once():

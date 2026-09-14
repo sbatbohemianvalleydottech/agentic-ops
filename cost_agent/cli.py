@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 
 from ensemble.env import load_env, setting
-from ledger import Ledger
+from ledger import DEFAULT_PATH, Ledger
 
 from .pipeline import analyse
 from .report import render_report
@@ -85,15 +85,18 @@ def main(argv: list[str] | None = None) -> int:
         rater_b = setting("RATER_B", "gemini/gemini-3.8-flash")
         judge_model = setting("JUDGE", "anthropic/claude-sonnet-5")
 
-        # One cheap call each before the expensive pass.
-        check = preflight([rater_a, rater_b, judge_model])
+        ledger = Ledger(DEFAULT_PATH)
+
+        # One cheap call each before the expensive pass, metered like any other.
+        check = preflight(
+            [rater_a, rater_b, judge_model], ledger=ledger, caller="cost_agent"
+        )
         print(check.render(), file=sys.stderr)
         if not check.ok:
             print("Aborting before the run. Fix the above.", file=sys.stderr)
             return 1
 
         provider = LiteLLMProvider()
-        ledger = Ledger(Path(".ledger/calls.jsonl"))
         progress = StderrProgress()
         models = (rater_a, rater_b, judge_model)
         analysis = replace(

@@ -3,8 +3,7 @@ answer the question afterwards.
 """
 
 import json
-
-import pytest
+from decimal import Decimal
 
 from ledger import Ledger
 
@@ -44,8 +43,8 @@ def test_the_cost_of_one_decision_can_be_retrieved_afterwards(tmp_path):
         role="rater", input_tokens=400, output_tokens=100, cost=0.0045,
     )
 
-    assert led.cost_of("d1") == pytest.approx(0.0173)
-    assert led.cost_of("d2") == pytest.approx(0.0045)
+    assert led.cost_of("d1") == Decimal("0.0173")
+    assert led.cost_of("d2") == Decimal("0.0045")
 
 
 def test_a_record_says_which_rubric_the_decision_assessed(tmp_path):
@@ -74,7 +73,7 @@ def test_the_rubric_is_optional_so_older_rows_still_parse(tmp_path):
     )
 
     assert json.loads(path.read_text())["rubric"] is None
-    assert Ledger(path).cost_of("d1") == pytest.approx(0.01)
+    assert Ledger(path).cost_of("d1") == Decimal("0.01")
 
 
 def test_an_unknown_reader_tolerates_fields_it_does_not_recognise(tmp_path):
@@ -87,4 +86,4 @@ def test_an_unknown_reader_tolerates_fields_it_does_not_recognise(tmp_path):
         + "\n"
     )
 
-    assert Ledger(path).cost_of("d1") == pytest.approx(0.01)
+    assert Ledger(path).cost_of("d1") == Decimal("0.01")

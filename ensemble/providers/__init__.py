@@ -23,6 +23,37 @@ def redact(message: str) -> str:
     return _KEYISH.sub("[REDACTED]", message)
 
 
+def _recompute(response) -> float:
+    """Work the price out from the response. Imported late so the core stays
+    importable with no provider library installed."""
+    from litellm import completion_cost
+
+    return float(completion_cost(completion_response=response))
+
+
+def call_cost(response) -> float:
+    """What one completed call cost, in dollars.
+
+    Prefers the figure LiteLLM attaches to the response, because it is already
+    computed and it accounts for cache-hit tokens, and recomputes only when
+    that is absent. A null means not computed and falls through; an explicit
+    zero is a real answer and is kept.
+
+    Never raises. Cost is bookkeeping, and a model that answered correctly but
+    has no published price must not have its verdict discarded over it. That is
+    fabrication in the opposite direction: the system looking broken while
+    working.
+    """
+    try:
+        hidden = getattr(response, "_hidden_params", None) or {}
+        reported = hidden.get("response_cost")
+        if reported is not None:
+            return float(reported)
+        return _recompute(response)
+    except Exception:
+        return 0.0
+
+
 @dataclass(frozen=True)
 class Usage:
     """What one model call consumed. Feeds the cost ledger."""
