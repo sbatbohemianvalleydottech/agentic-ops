@@ -29,15 +29,18 @@ failing later, and naming a newer interpreter is the whole fix.
 
 ```bash
 .venv/bin/python -m pytest -q
-# 453 passed, 7 skipped in 0.45s
+# 453 passed, 8 skipped in 0.56s
 ```
 
-**The three skips are deliberate and worth understanding.** They are the LiteLLM adapter
-tests, and they skip because the provider library is an optional extra:
+**The skips are deliberate and worth understanding.** Every one is a LiteLLM adapter test,
+and they skip because the provider library is an optional extra. The count is 8 rather than
+the 14 tests involved, because one file skips as a whole module and pytest reports that once:
 
 ```bash
 .venv/bin/python -m pytest -q -rs | grep SKIPPED
 # SKIPPED [1] tests/unit/test_providers.py:62: could not import 'litellm'
+# SKIPPED [1] tests/unit/test_prompt_version_is_derived.py:18: could not import 'litellm'
+# ...and 5 more lines, all the same reason
 ```
 
 Install the extra and nothing skips:
@@ -45,7 +48,7 @@ Install the extra and nothing skips:
 ```bash
 uv pip install -e ".[dev,providers]"
 .venv/bin/python -m pytest -q
-# 460 passed in 1.9s
+# 467 passed in 1.8s
 ```
 
 CI runs both arrangements, and the second job fails if any adapter test skips, so "it passed"

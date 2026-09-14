@@ -10,7 +10,14 @@ A stale version is worse than none. It does not merely lose the attribution,
 it asserts that two different prompts were the same one.
 """
 
-from ensemble.providers.litellm import (
+import pytest
+
+# The adapter is an optional extra, and the core CI job installs no provider
+# library. Skipping the module is right here: this is a fact about the adapter,
+# unlike the exit contract or the ledger, which must hold with nothing installed.
+pytest.importorskip("litellm")
+
+from ensemble.providers.litellm import (  # noqa: E402
     _JUDGE_PROMPT,
     _RATER_PROMPT,
     PROMPT_VERSION,
