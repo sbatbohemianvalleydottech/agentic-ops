@@ -78,6 +78,52 @@ def _driver_block(index: int, driver: Driver) -> list[str]:
     return lines + [""]
 
 
+def _savings_total(analysis) -> list[str]:
+    """The identified saving, split by whether anything is waiting on a date.
+
+    A driver whose resources are scheduled to go away already prints its
+    horizon. Adding the driver ranges together lost that: the sum reads as one
+    number available to whoever is asking, when a share of it cannot arrive
+    until somebody else's decommission lands. On a real estate that share was
+    two thirds, and the difference between 38% and 12.6% of the bill is the
+    difference between a plan and a wish.
+    """
+    dated = [d for d in analysis.drivers if d.decommission_horizon]
+    undated = [d for d in analysis.drivers if not d.decommission_horizon]
+
+    def total(drivers, field):
+        return sum((getattr(d, field) for d in drivers), Decimal("0"))
+
+    low, high = total(analysis.drivers, "savings_low"), total(analysis.drivers, "savings_high")
+    if not low and not high:
+        return []
+
+    def band(a: Decimal, b: Decimal) -> str:
+        if not analysis.total_bill_annual:
+            return ""
+        low_pct = a / analysis.total_bill_annual * 100
+        high_pct = b / analysis.total_bill_annual * 100
+        return f" ({low_pct:.1f}% to {high_pct:.1f}%)"
+
+    now_low, now_high = total(undated, "savings_low"), total(undated, "savings_high")
+    lines = [
+        "",
+        f"Identified savings:         {_money(low)} to {_money(high)}{band(low, high)}",
+        f"  available now             {_money(now_low)} to {_money(now_high)}"
+        f"{band(now_low, now_high)}",
+    ]
+    if dated:
+        dl, dh = total(dated, "savings_low"), total(dated, "savings_high")
+        horizon = max(d.decommission_horizon for d in dated)
+        lines.append(
+            f"  behind a scheduled date   {_money(dl)} to {_money(dh)}{band(dl, dh)},"
+            f" the last {horizon}"
+        )
+    else:
+        lines.append("  behind a scheduled date   none")
+    return lines
+
+
 def render_report(
     analysis: Analysis, models: tuple[str, str, str] | None = None
 ) -> str:
@@ -110,6 +156,9 @@ def render_report(
         f"Attributed to drivers:      {_money(attributed)} of "
         f"{_money(analysis.total_bill_annual)}",
         "Every dollar belongs to exactly one driver, so these never sum past the bill.",
+    ]
+    lines += _savings_total(analysis)
+    lines += [
         "",
         "Contested attributions",
         "  Resources matching more than one root cause. Assigned to the highest, with",
