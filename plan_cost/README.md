@@ -359,7 +359,11 @@ nothing here opens a socket.
   responses, and the API shapes come from the current documentation, but nothing has run
   against a live billing account.
 - **The fixtures are hand-authored** against Terraform's documented JSON format. No
-  `terraform` binary was run, because none is installed where this was built.
+  `terraform` binary was run, because none is installed where this was built. It has been
+  run against published plans from public repositories, in both `format_version` 1.1 and
+  1.2, which is where the coverage line's grammar and the missing-row instruction came
+  from. It parsed all of them and priced none of them, correctly: the shipped table holds
+  four rows.
 - **Compute is priced by machine type.** Storage attached inside an instance or a node pool
   is not in its figure, and the report says so on every run that prices a monthly change. A
   plan where nothing could be priced carries no figure, so it carries no caveat either. A
@@ -367,7 +371,8 @@ nothing here opens a socket.
 - **It judges one change in isolation.** Current spend needs the billing export, which is a
   different data source.
 - **Google Cloud only.** A second cloud is an extension point, not a claim.
-- **Built in a day.** Not production-tested.
+- **Not production-tested.** Built in a day, and it has never gated anybody's merge but this
+  repository's own CI.
 
 ## Run its tests
 

@@ -277,8 +277,9 @@ Those are the lines every failure of the first live run happened in.
 - **It does not decide what should be retired.** `decommission_at` is something you state.
 - **The fixtures are synthetic**, and every figure in this README comes from them or from
   the modelled estate described above. No real billing data is in this repository.
-- **Built in a week.** Not production-tested, and it has never run against a live billing
-  export.
+- **It has never called a cloud billing API.** Both inputs are files you supply, so the
+  analysis is exactly as current as the export you hand it and no more.
+- **Not production-tested.** Built in a week, and nobody runs it on a schedule.
 
 ## Run its tests
 

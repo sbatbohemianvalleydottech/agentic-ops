@@ -387,19 +387,21 @@ Those are the lines every failure of the first live run happened in.
 
 ## What it does not do
 
-- **It cannot tell a stable disagreement from a coin flip.** The same two models reached
-  the same two grades in every run: Opus `adequate`, Gemini `strong`. A split that
-  reproduces means the models read the rubric differently and consistently, so re-running
-  is spend with no information in it. A split that flaps is sampling noise. Every run here
-  is independent and nothing compares them, so both are reported identically. Recorded as
-  a limitation rather than fixed, because separating them means deciding how many repeats
-  are worth paying for, and that is a judgement about a corpus this repository does not
-  have.
+- **It cannot tell a stable disagreement from a coin flip.** A split that reproduces means
+  the models read the rubric the same way every time and differently from each other. A
+  split that flaps is sampling noise. Every run here is independent and nothing compares
+  them, so both are reported identically. On `no_alternate_reality` the split reproduced,
+  run after run, and that pattern is what identified the rubric as the problem rather than
+  the models. **A person noticed it across runs. Nothing in the tool does**, because
+  separating the two means deciding how many repeats are worth paying for, and that is a
+  judgement about a corpus this repository does not have.
 - **It does not write RCAs.** `python -m rca_agent.draft` has an agent draft one from raw
   incident artifacts and then runs this eval over what it just wrote, but drafting is not a
   feature here: an agent-written RCA is precisely the artifact the eval exists to doubt.
-- **The corpus is synthetic.** No real incident data is in this repository.
-- **Built in a week.** Not production-tested.
+- **The corpus is synthetic.** No real incident data is in this repository. It has been run
+  against published incident reports, which is where two of the checks above were found
+  misfiring and where the rubric rewrite came from, but none of those documents are here.
+- **Not production-tested.** Built in a week, and nobody runs it on a schedule.
 
 ## Run its tests
 

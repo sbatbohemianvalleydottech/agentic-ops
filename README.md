@@ -159,6 +159,38 @@ with a published sunset date under *right-sizing*: utilisation was the only sign
 for "should this exist", and the same evidence produced two answers millions apart. The
 fix was to take a stated end-of-life date as input rather than infer one.
 
+## What running it on real inputs changed
+
+Fixtures are written by the person who wrote the code, so they test what that person
+thought of. All three tools were then pointed at inputs nobody here authored: a real cloud
+estate, published incident reports, and Terraform plans from public repositories. **Every
+defect below was invisible on the fixtures and obvious on the first real input.**
+
+| What broke | Why the fixtures could not catch it |
+|---|---|
+| "1 resource changes, 1 accounted for" | real plans are frequently one resource; both shipped plan fixtures have twelve |
+| The blame check read "the job failed to start" as blaming somebody | that is ordinary incident English, and no fixture contained a sentence like it |
+| A review that agreed no follow-ups was reported for not exporting them | no fixture has zero action items, so the empty case never arose |
+| Reports carried `’` where an apostrophe belonged | every real document has typographic punctuation; no fixture did |
+| Two thirds of a headline saving was unavailable until 2028 and the headline did not say so | on `estate_a` the dated driver is under 2% of the bill, so the error is invisible at that size |
+| A missing price key was named with no next step | the fixtures are priced, so nobody ever hit the dead end |
+| Nothing said when every single resource produced a finding | saturation reads as thoroughness unless somebody names it |
+| Three rules evaluated nothing and no rule said so | the fixtures are fully populated, so every check ran |
+| The paid pass paid to grade documents that were not reviews | every corpus fixture is a review |
+| One judgement dimension had never once reached a grade | it halts on fixtures too, and a halt looks like the gate working |
+
+The last two are the expensive ones. `rca_agent` spent $0.2817 having two vendors and a
+judge assess the depth of analysis in three documents recording no contributing factor and
+no action item, which the free structural pass had already established. It now refuses, and
+the refusal is a line in a config file rather than a branch in the code.
+
+And `no_alternate_reality` had contested in **every run, in every context**, while costing
+1.7 to 2.0 times the dimensions that reached a grade. That is not two models disagreeing. It
+was a question that could not be answered from the evidence the assessors were handed, and
+rewriting it produced four agreements out of four across four documents, still separating
+them: strong where the narrative is factual, weak where it slips into the hypothetical fix.
+The full diagnosis is in [`rca_agent/README.md`](rca_agent/README.md).
+
 ## What is not here yet
 
 **Principle II is the one principle taken on trust.** The constitution says every claim in
@@ -199,8 +231,8 @@ and inventing it would be exactly the fabrication this repository exists to catc
 
 ## Honest limitations
 
-- **Built in a week.** Not production-tested.
-- **AI-built on synthetic data, human reviewed.** Stated plainly rather than implied.
+- **Not production-tested.** Built in a week, and nothing here runs on anybody's schedule.
+- **AI-built, human reviewed.** Stated plainly rather than implied.
 - **The test suite has never made a live model call**, and the paid paths have. Every test
   runs against a deterministic fake provider; the judgement and confidence passes have been
   run for real against Anthropic and Google. "Tested offline" and "verified end to end" are
@@ -214,4 +246,6 @@ and inventing it would be exactly the fabrication this repository exists to catc
   credentials section above now names that install first.
 - **`plan_cost` has never called a live billing API.** Its catalogue and budget paths were
   built against the current documentation and tested against recorded responses.
-- **All fixtures are synthetic.** No real cloud, incident or employee data is present.
+- **All fixtures are synthetic.** No real cloud, incident or employee data is in this
+  repository. The tools have been run against real inputs, as the section above describes,
+  and none of those inputs are here.
