@@ -69,7 +69,7 @@ clone before it was written down.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/python -m pytest                    # 525 passed, 9 skipped, ~0.6s
+.venv/bin/python -m pytest                    # 585 passed, 10 skipped, ~0.6s
 
 .venv/bin/python -m cost_agent \
   --costs cost_agent/fixtures/estate_a/costs.csv \
@@ -84,7 +84,9 @@ uv venv && uv pip install -e ".[dev]"
 
 **Everything worth attacking runs offline and free.** Only genuine judgement costs money.
 An incident review missing a detection timestamp does not need a second opinion, and paying
-for one would be the tool failing to think.
+for one would be the tool failing to think. `rca_agent` now enforces that rather than only
+saying it: a document recording neither a contributing factor nor an action item is reported
+by the free pass and never sent to a model.
 
 Swap `estate_a` for `estate_b` and the same code produces a different diagnosis. If both
 produced the same drivers, the tool would be recognising its fixture rather than analysing
@@ -96,7 +98,7 @@ The default install deliberately leaves the provider library out, so **the paid 
 one more install**. Skip it and every paid command stops with `litellm is not installed`:
 
 ```bash
-uv pip install -e ".[dev,providers]"   # adds litellm; the suite goes 525+9 -> 540
+uv pip install -e ".[dev,providers]"   # adds litellm; the suite goes 585+10 -> 606
 cp .env.example .env                   # then paste your keys into .env
 ```
 
@@ -143,7 +145,7 @@ and CI enforces the one that is mechanically checkable.
 
 Test-first throughout. No production code without a failing test watched failing first.
 
-Coverage is a floor in CI at 88%, currently 90.0% across 540 tests. The two paid demos sit at
+Coverage is a floor in CI at 88%, currently 90.5% across 606 tests. The two paid demos sit at
 0% and are counted anyway, because excluding them would be measuring the easy part.
 
 **The documents are tested the same way the code is.** Each README is handed to a reader with
@@ -171,7 +173,7 @@ test-first.
 
 **There is no golden set, and it is the next thing to build.** The gate halts when two raters
 disagree, and nothing anywhere measures whether the grade they agreed on was *right*. Every
-free path is covered by 540 tests. The paid paths, which are the ones that cost money and make
+free path is covered by 606 tests. The paid paths, which are the ones that cost money and make
 the judgements, are checked by running them and reading the output.
 
 That matters more than it sounds, because two independent runs of the same fixture on
@@ -181,8 +183,14 @@ That matters more than it sounds, because two independent runs of the same fixtu
 neither vendor allows it: Anthropic's Opus 5 and Sonnet 5 reject any value but 1, and Gemini 3
 has deprecated the parameter. So run-to-run variation cannot be controlled at the API layer on
 these models, which makes a labelled baseline the only way left to tell a prompt regression
-from noise. Every ledger row now carries the prompt version that produced it, so when the
-baseline exists there is something to attribute a change to.
+from noise. Every ledger row now carries two fingerprints, the adapter's prompt templates and
+the criteria that was actually asked, so when the baseline exists there is something to
+attribute a change to. It carried only the first until a rewritten rubric made every row
+claim the same version as the runs before it.
+
+One dimension has been through a before-and-after on four documents, which is what it took to
+show that `no_alternate_reality` contesting every time was the wording and not the models.
+Four documents and one run each is enough to fix a prompt. It is not a baseline.
 
 What it needs is the 8 incident fixtures labelled on each judgement dimension by a person, and
 a harness that reports agreement against those labels on every prompt or model change. The

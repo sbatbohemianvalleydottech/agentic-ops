@@ -161,6 +161,38 @@ Assessed means checked. Resources with no utilisation data were never checked ag
 anything, so they are not in that count. Below three assessed resources the note does not
 appear, because "all of them" says nothing about thresholds at that size.
 
+**A check that never ran says so.** The same distinction, applied to the inputs rather than
+to the report's own sections, which is where it matters more: a reader can see an empty
+heading and cannot see an absent field. On `estate_a`:
+
+```
+Checks that could not run
+  A rule that ran and found nothing, and a rule that never ran, are
+  different claims. These are the second kind.
+  - cold_on_hot_tier         needs last_access: absent on 2 of 15
+  - idle                     needs utilisation_avg: absent on 1 of 15
+  - no_commitment            needs utilisation_avg: absent on 1 of 15
+  - oversized                needs provisioned, observed_peak: absent on 1 of 15
+  - peak_shaped_always_on    needs weekday_utilisation, weekend_utilisation: absent on 9 of 15
+  - under_utilised           needs utilisation_avg: absent on 1 of 15
+```
+
+Exactly one resource in that fixture carries weekday utilisation, so the weekend-shape rule
+had nothing to work on for the other nine. That was true before this section existed and
+nothing said so.
+
+Two things are deliberately **not** gaps, and both came from running it rather than
+reasoning about it. A tier that is present and not hot is not a gap: the rule ran and the
+answer was no. And a check only counts as unable to run where the field is one that kind of
+resource could have had, so a virtual machine is never reported as missing a storage class.
+The first version of this section reported `cold_on_hot_tier` as unrun on 12 of 15
+resources for that reason, and a report full of inapplicable checks is the report people
+learn to skip.
+
+The gaps are recorded by the classifier at the branch that decides a rule cannot run, not
+derived from a table of rules and the fields they need. A table would be a second statement
+of the same conditions and would drift from them the first time a rule changed.
+
 **Retirement is a stated commitment, never an inference.** The inventory takes an optional
 `decommission_at` per resource, because the tool does not get to decide which of your
 platforms are obsolete.
@@ -255,11 +287,12 @@ Those are the lines every failure of the first live run happened in.
   tests/unit/test_savings.py tests/unit/test_inputs.py tests/unit/test_thresholds.py \
   tests/unit/test_cost_report.py tests/integration/test_generalises.py \
   tests/unit/test_savings_horizon_total.py tests/unit/test_saturation_note.py \
+  tests/unit/test_unrun_checks.py tests/unit/test_unrun_checks_report.py \
   tests/integration/test_confidence.py \
   tests/integration/test_cost_report_consistency.py tests/integration/test_free_path_exits_ok.py
 ```
 
-107 tests, offline, no credentials.
+134 tests, offline, no credentials.
 
 ## Dependencies
 

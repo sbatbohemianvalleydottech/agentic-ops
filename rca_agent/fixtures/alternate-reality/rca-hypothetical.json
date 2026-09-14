@@ -1,0 +1,40 @@
+{
+  "rca_id": "rca-hypothetical",
+  "severity": "sev1",
+  "timeline": [
+    {"name": "detection", "at": "2026-07-14T09:12:00"},
+    {"name": "escalation", "at": "2026-07-14T09:20:00"},
+    {"name": "mitigation", "at": "2026-07-14T09:48:00"},
+    {"name": "resolution", "at": "2026-07-14T10:05:00"}
+  ],
+  "impact": "Checkout was unavailable for 53 minutes, affecting roughly 18,000 sessions.",
+  "stated_cause": "A schema migration held an exclusive lock on the orders table while the write path was still serving traffic, because the migration runner has no way to detect an in-flight read.",
+  "contributing_factors": [
+    "The migration runner takes no lock timeout, so a long transaction blocks indefinitely.",
+    "No canary environment carries production-sized tables, so lock duration was never observed before release."
+  ],
+  "narrative": "The on-call was paged at 09:12 after checkout error rates crossed the alert threshold. Had the lock timeout been set, the migration would have aborted within seconds and none of this would have happened. The team should have caught this in staging, but staging tables are small. At 09:31 the held lock was identified, and the migration was rolled back at 09:48. The fix is to add a lock timeout and to size the canary tables properly, which would have prevented the outage entirely.",
+  "participants": ["Rae Lindqvist", "Sam Okafor"],
+  "action_items": [
+    {
+      "title": "Set a lock timeout on the migration runner",
+      "state": "open",
+      "created": "2026-07-14T11:00:00",
+      "owner": "Sam Okafor",
+      "due": "2026-08-14T00:00:00",
+      "tracker_ref": "PLATFORM-881",
+      "category": "prevent"
+    },
+    {
+      "title": "Size canary tables to production volume",
+      "state": "open",
+      "created": "2026-07-14T11:00:00",
+      "owner": "Rae Lindqvist",
+      "due": "2026-09-14T00:00:00",
+      "tracker_ref": "PLATFORM-882",
+      "category": "prevent"
+    }
+  ],
+  "closed_at": "2026-07-15T09:00:00",
+  "followups_exported_at": "2026-07-15T10:00:00"
+}

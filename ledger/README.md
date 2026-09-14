@@ -75,9 +75,10 @@ spending anything, but it is a traceback rather than a sentence, so expect it.
 ## How it works
 
 Each line holds the decision, the caller, the model and its role, the token counts, the
-cost, the rubric being assessed and a UTC timestamp. Lines are only ever appended. A reader
-ignores keys it does not recognise, so the format can grow without breaking older readers,
-and `rubric` is optional, so rows written before that field existed still parse.
+cost, the rubric being assessed, the two version fingerprints and a UTC timestamp. Lines are
+only ever appended. A reader ignores keys it does not recognise, so the format can grow
+without breaking older readers, and `rubric`, `prompt_version` and `rubric_version` are all
+optional, so rows written before each field existed still parse.
 
 What writes to it:
 
@@ -90,11 +91,18 @@ What writes to it:
 
 ## What you can argue with
 
-The fields. A row records tokens, cost, the rubric assessed and the version of the prompt
-set that produced the verdict, and deliberately not the
-model's reasoning text, which can be large and is rendered into the report instead. If you
-want cost attributed by team or by service rather than by caller, that is a field here and
-nothing else changes.
+The fields. A row records tokens, cost, the rubric assessed, and **two** versions, and
+deliberately not the model's reasoning text, which can be large and is rendered into the
+report instead. If you want cost attributed by team or by service rather than by caller,
+that is a field here and nothing else changes.
+
+Two versions because they are two facts. `prompt_version` fingerprints the adapter's prompt
+templates. `rubric_version` fingerprints the criteria that was actually asked, which lives
+in a config file and is the half anybody edits. Recording only the first was a control that
+read as complete and was not: rewriting a dimension's wording left every row claiming the
+same version as the runs before it, so a before-and-after comparison would have compared two
+runs the ledger said were identical. Found while rewriting one. Both are optional, so rows
+written before either field existed still parse.
 
 ## The paid path
 

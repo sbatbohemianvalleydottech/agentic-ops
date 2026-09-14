@@ -207,6 +207,44 @@ the whole review. From a live run on `rca-hollow`, with each rater's reasoning l
 A contested dimension gets **no grade at all**. "Adequate", sitting between one assessor's
 "weak" and another's "strong", is a number nobody argued for.
 
+### A dimension that always halts is a defect, not a result
+
+`no_alternate_reality` contested in every run in every context, fixtures and published
+incident reports alike, while costing 1.7 to 2.0 times the dimensions that reached a grade.
+Two assessors disagreeing is the gate working. Two assessors *always* disagreeing is a
+question that cannot be answered from what they are given.
+
+Two faults sat in one sentence. It asked whether the review "keeps the description of what
+actually happened separate from what should have happened", and **an assessor never sees the
+review as a document**: it sees an evidence bundle whose records are already labelled and
+already separated, `Stated cause:`, `Narrative:`, `Action item:`. The question was about a
+property the bundle removes before anyone reads it, so it was answered from priors, and two
+sets of priors gave two answers every time. The second fault: action items are prescriptive
+by design, so an assessor counting them as "what should have happened" grades weak and one
+excluding them grades adequate. Nothing in the wording said which.
+
+The rewrite names the record to read, gives examples of what to look for, and says
+explicitly to ignore the action items because they are graded elsewhere. Measured on four
+documents, one run each:
+
+| Document | Narrative | Old wording | New wording |
+|---|---|---|---|
+| three published status page entries | chronological updates, no hypotheticals | contested on 2 of 3 | **strong**, both raters, all three |
+| `fixtures/alternate-reality/rca-hypothetical.json` | "had the lock timeout been set... the team should have caught this" | not run | **weak**, both raters |
+
+Four agreements out of four, and it separates them rather than agreeing on everything. It
+also cost $0.079 against the old wording's $0.136 for the same three documents, which is
+the cost signal below pointing the same way.
+
+**The negative fixture had to be built.** No document in the shipped corpus has a narrative
+that slips into the hypothetical, so a run over the corpus would have graded everything
+strong and shown nothing. That absence is worth noticing on its own: the corpus exercised
+every structural check and not this dimension.
+
+**One run of four documents is not a golden set.** It is enough to show the old wording was
+the problem and not the models. It is not enough to say the new wording is right, and
+nothing here measures whether `strong` and `weak` were the correct answers.
+
 ## What you can argue with
 
 ```bash
@@ -268,6 +306,45 @@ names the assessors and the judge.
 Watch `rca-hollow`. It is the case where the structural checks are silent and the judgement
 layer is the only thing between a fluent document and a repeat incident.
 
+### It will not pay to grade a document that is not a review
+
+```bash
+.venv/bin/python -m rca_agent --corpus rca_agent/fixtures/not-a-review \
+  --as-of 2026-09-14 --judgement
+```
+
+```
+  Judgement dimensions
+
+    not judged: this document records no contributing factors and no action
+    items. Grading the depth of an analysis that is not there would cost money
+    and tell you what the structural pass above already has.
+```
+
+Zero judgement calls, and the free structural pass still runs and still reports. The
+preflight probe does run first, three calls for about $0.0003, because it checks the models
+are reachable before the loop starts and it cannot know in advance that the loop will not
+need them. That is the whole spend: $0.0003 against $0.0901 a review. This exists because
+it did the opposite: pointed at three published status page entries, it spent
+$0.2817 having two vendors and a judge grade the depth of analysis in documents recording
+no contributing factor, no action item and no participant. Every dimension came back weak
+or contested, which the free pass had established first and for nothing.
+
+The bar is in [`rubric.toml`](rubric.toml) as `judgement_requires_any`, and it is **any one
+of them present**, not all. A review with action items has committed to work and the actions
+dimension has something to read; one with contributing factors has recorded an analysis and
+the cause dimension has something to read. Both absent means the document states neither why
+it happened nor what anyone will do.
+
+It is not a structural defect and does not reach `--fail-on-defects`: a defect is a finding
+about a review, and this is a statement that the thing is not one. Empty the list to switch
+it off, or overrule it per run:
+
+```bash
+.venv/bin/python -m rca_agent --corpus rca_agent/fixtures/not-a-review \
+  --as-of 2026-09-14 --judgement --judge-anyway
+```
+
 ### Cost may be a leading indicator of an ambiguous rubric
 
 From one live run, output tokens per dimension while input stayed flat at 858-877:
@@ -282,6 +359,10 @@ The models wrote more when the answer was not clear, and the judge wrote nearly 
 more. Across three runs of the same document, `no_alternate_reality` cost twice the other
 two dimensions every time, with input flat to within 2%. If that holds more widely, a
 dimension's cost tells you the rubric does not discriminate before anyone reads the output.
+
+It held here. That dimension was the ambiguous one, it was rewritten for the reasons above,
+and the rewritten wording cost $0.079 against $0.136 for the same three documents. One
+before-and-after is not a law, but the signal pointed at the right dimension.
 
 Three runs of one document is an observation, not a threshold. Recovering even this table
 meant inferring the dimension from row order, so ledger rows now record the rubric they
@@ -325,12 +406,13 @@ Those are the lines every failure of the first live run happened in.
 ```bash
 .venv/bin/python -m pytest tests/unit/test_structure.py tests/unit/test_rubric.py \
   tests/unit/test_completion.py tests/unit/test_rca_report.py tests/unit/test_rca_types.py tests/unit/test_blame_needs_a_person.py \
-  tests/unit/test_export_breach_needs_followups.py \
+  tests/unit/test_export_breach_needs_followups.py tests/unit/test_worth_judging.py \
+  tests/unit/test_judgement_criteria.py \
   tests/integration/test_corpus.py tests/integration/test_judgement.py \
-  tests/integration/test_rca_gate.py
+  tests/integration/test_rca_gate.py tests/integration/test_judgement_bar.py
 ```
 
-78 tests, offline, no credentials. `tests/integration/test_corpus.py` is the one asserting
+111 tests, offline, no credentials. `tests/integration/test_corpus.py` is the one asserting
 that each fixture fails only the check it was built to fail.
 
 ## Dependencies

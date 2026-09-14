@@ -70,7 +70,7 @@ be blunt, and say that a defect softened is a defect shipped, for that reason.
 
 ## What it does not do
 
-- **It does not test the code.** The test suite does that, offline, 540 times.
+- **It does not test the code.** The test suite does that, offline, 606 times.
 - **It does not prove a document is good**, only that its instructions execute and its
   checkable numbers hold. Whether the argument is any good is a human's call.
 - **Four readers is not a sample.** Two of these five findings would probably have been
