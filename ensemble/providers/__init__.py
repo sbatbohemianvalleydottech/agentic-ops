@@ -104,6 +104,11 @@ class Call:
     # ledger row cannot be attributed to the wording that produced it, and no
     # later claim about drift or regression can be checked.
     prompt_version: str = ""
+    # Which criteria was asked. A separate fact from the template above: the
+    # criteria lives in a config file and is the half anybody edits, and
+    # recording only the template left a rewritten dimension indistinguishable
+    # in the ledger from the wording it replaced.
+    rubric_version: str = ""
 
     @property
     def failed(self) -> bool:

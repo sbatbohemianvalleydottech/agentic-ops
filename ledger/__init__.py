@@ -37,6 +37,7 @@ class Ledger:
         cost: float,
         rubric: str | None = None,
         prompt_version: str | None = None,
+        rubric_version: str | None = None,
     ) -> None:
         """Append one line for one model call. Never rewrites history."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -57,6 +58,12 @@ class Ledger:
             # Which wording produced this verdict. Absent on rows written
             # before the field existed, which is why it is optional.
             "prompt_version": prompt_version or None,
+            # Which question was asked. Separate from the field above, which
+            # fingerprints the adapter's templates and not the criteria. The
+            # criteria lives in a config file and is the half people edit, so
+            # recording only the template made a rewritten dimension
+            # indistinguishable from the wording it replaced.
+            "rubric_version": rubric_version or None,
             "timestamp": datetime.now(UTC).isoformat(),
         }
         with self.path.open("a") as handle:

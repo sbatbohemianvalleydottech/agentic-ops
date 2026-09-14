@@ -66,6 +66,7 @@ def run_decision(
             cost=call.usage.cost,
             rubric=rubric.name,
             prompt_version=call.prompt_version,
+            rubric_version=call.rubric_version,
         )
         if call.failed:
             failures.append(

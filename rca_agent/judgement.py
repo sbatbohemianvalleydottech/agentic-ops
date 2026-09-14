@@ -30,11 +30,27 @@ CRITERIA = {
         "let a bad deploy reach production undetected. Grade the depth of the "
         "explanation, not the quality of the writing."
     ),
+    # Rewritten after it contested on every document in every run, on fixtures
+    # and on published incident reports alike, while costing 1.7 to 2.0 times
+    # the dimensions that reached a grade.
+    #
+    # The old wording asked whether the review kept what happened apart from
+    # what should have happened. An assessor never sees the review as a
+    # document: it sees the bundle below, whose records are already labelled and
+    # already separated. The question was about a property the bundle removes
+    # before anyone reads it, so it was answered from priors, and two sets of
+    # priors gave two answers every time. The second fault was in the same
+    # sentence: action items are prescriptive by design, and nothing said
+    # whether they counted, so one reading graded weak and the other adequate
+    # and both were defensible.
     Dimension.NO_ALTERNATE_REALITY: (
-        "Does this review keep the description of what actually happened separate "
-        "from what should have happened? Slipping into the hypothetical fix while "
-        "describing the incident means the actual sequence was never established. "
-        "Grade whether the two are kept apart."
+        "Read the record labelled Narrative, and only that record. Does it state "
+        "what was observed and what was done, or does it carry statements about "
+        "what should have happened or would have happened: 'we should have caught "
+        "this', 'had the alert fired', 'the fix is to validate the config'? A "
+        "narrative carrying the hypothetical fix means the actual sequence was "
+        "never established. Ignore the action items entirely: those are supposed "
+        "to say what will be done, and they are graded elsewhere."
     ),
     Dimension.ACTIONS_WOULD_PREVENT: (
         "Would the action items marked as preventive actually stop this recurring? "

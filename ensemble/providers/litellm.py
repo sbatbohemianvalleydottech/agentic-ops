@@ -221,10 +221,12 @@ class LiteLLMProvider:
                 usage=usage,
                 error=error,
                 prompt_version=PROMPT_VERSION,
+                rubric_version=version_of(rubric.criteria),
             )
         if "grade" not in payload:
             return Call(
                 prompt_version=PROMPT_VERSION,
+                rubric_version=version_of(rubric.criteria),
                 verdict=None,
                 usage=usage,
                 error=f"reply had no 'grade' key: {sorted(payload)}",
@@ -234,6 +236,7 @@ class LiteLLMProvider:
         # is the gate's job, and coercing it here would hide a broken prompt.
         return Call(
             prompt_version=PROMPT_VERSION,
+            rubric_version=version_of(rubric.criteria),
             verdict=RaterVerdict(
                 rater=model,
                 grade=str(payload["grade"]),
@@ -263,10 +266,12 @@ class LiteLLMProvider:
                 usage=usage,
                 error=error,
                 prompt_version=PROMPT_VERSION,
+                rubric_version=version_of(rubric.criteria),
             )
         if "justified" not in payload:
             return Call(
                 prompt_version=PROMPT_VERSION,
+                rubric_version=version_of(rubric.criteria),
                 verdict=None,
                 usage=usage,
                 error=f"reply had no 'justified' key: {sorted(payload)}",
@@ -274,6 +279,7 @@ class LiteLLMProvider:
 
         return Call(
             prompt_version=PROMPT_VERSION,
+            rubric_version=version_of(rubric.criteria),
             verdict=JudgeVerdict(
                 justified=bool(payload["justified"]),
                 reasoning=readable(str(payload.get("reasoning", ""))),
