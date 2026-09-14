@@ -90,7 +90,8 @@ What writes to it:
 
 ## What you can argue with
 
-The fields. A row records tokens, cost and the rubric assessed, and deliberately not the
+The fields. A row records tokens, cost, the rubric assessed and the version of the prompt
+set that produced the verdict, and deliberately not the
 model's reasoning text, which can be large and is rendered into the report instead. If you
 want cost attributed by team or by service rather than by caller, that is a field here and
 nothing else changes.

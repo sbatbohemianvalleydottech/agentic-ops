@@ -49,6 +49,35 @@ JUDGE_SCHEMA = {
 # prefix to sit on. No cache_control is set yet, because at 308 evidence tokens
 # we are below the 512-token minimum on Opus 5 and a marker would silently do
 # nothing. See the preflight module.
+# Bump when either prompt below changes. It travels to the ledger on every
+# row, so a verdict recorded last month can be attributed to the wording that
+# produced it rather than to whatever the file says today.
+PROMPT_VERSION = "1"
+
+# NO SAMPLING PARAMETER IS SENT, and that is not an oversight.
+#
+# Two runs of the same fixture give different grades, so the obvious move is to
+# pin temperature and make runs comparable. Neither vendor allows it. Sending
+# temperature=0.0 on 14 September 2026 produced, from both Anthropic models:
+#
+#   UnsupportedParamsError: claude-opus-5 does not support temperature=0.0.
+#   Only temperature=1 is supported.
+#
+# and from Google:
+#
+#   DeprecationWarning: `temperature`, `top_p` and `top_k` continue to function
+#   for Gemini 3+ but are planned for removal in a future release.
+#
+# LiteLLM's own Opus 5 notes say sampling parameters "remain unsupported, same
+# as Opus 4.8". litellm.drop_params would make the error disappear by silently
+# discarding the parameter, which is the failure mode this repository exists to
+# object to: the call would look configured and would not be.
+#
+# So run-to-run variation is not controllable at the API layer on these models.
+# That is an argument for a labelled baseline, not against one: if you cannot
+# hold the sampler still, the only way to tell a prompt regression from noise is
+# to measure agreement against fixed labels over repeated runs.
+
 _RATER_PROMPT = """EVIDENCE about {subject}:
 {evidence}
 
@@ -165,9 +194,15 @@ class LiteLLMProvider:
             "rater_verdict",
         )
         if payload is None:
-            return Call(verdict=None, usage=usage, error=error)
+            return Call(
+                verdict=None,
+                usage=usage,
+                error=error,
+                prompt_version=PROMPT_VERSION,
+            )
         if "grade" not in payload:
             return Call(
+                prompt_version=PROMPT_VERSION,
                 verdict=None,
                 usage=usage,
                 error=f"reply had no 'grade' key: {sorted(payload)}",
@@ -176,6 +211,7 @@ class LiteLLMProvider:
         # The grade is passed through unchecked. Validating it against the scale
         # is the gate's job, and coercing it here would hide a broken prompt.
         return Call(
+            prompt_version=PROMPT_VERSION,
             verdict=RaterVerdict(
                 rater=model,
                 grade=str(payload["grade"]),
@@ -200,15 +236,22 @@ class LiteLLMProvider:
             "judge_verdict",
         )
         if payload is None:
-            return Call(verdict=None, usage=usage, error=error)
+            return Call(
+                verdict=None,
+                usage=usage,
+                error=error,
+                prompt_version=PROMPT_VERSION,
+            )
         if "justified" not in payload:
             return Call(
+                prompt_version=PROMPT_VERSION,
                 verdict=None,
                 usage=usage,
                 error=f"reply had no 'justified' key: {sorted(payload)}",
             )
 
         return Call(
+            prompt_version=PROMPT_VERSION,
             verdict=JudgeVerdict(
                 justified=bool(payload["justified"]),
                 reasoning=str(payload.get("reasoning", "")),

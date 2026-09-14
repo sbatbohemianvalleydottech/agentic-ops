@@ -28,6 +28,7 @@ class FakeProvider:
             return Call(verdict=None, usage=Usage(), error=self.fail_reason)
 
         return Call(
+            prompt_version="fake",
             verdict=RaterVerdict(
                 rater=model, grade=self.grades[model], reasoning=self.rater_reasoning
             ),
@@ -51,6 +52,7 @@ class FakeProvider:
             return Call(verdict=None, usage=Usage(), error=self.fail_reason)
 
         return Call(
+            prompt_version="fake",
             verdict=JudgeVerdict(justified=self.justified, reasoning="fake judge verdict"),
             usage=Usage(input_tokens=900, output_tokens=200, cost=0.0038),
         )

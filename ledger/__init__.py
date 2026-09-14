@@ -36,6 +36,7 @@ class Ledger:
         output_tokens: int,
         cost: float,
         rubric: str | None = None,
+        prompt_version: str | None = None,
     ) -> None:
         """Append one line for one model call. Never rewrites history."""
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -53,6 +54,9 @@ class Ledger:
             # recorded but not what it was for, so spend cannot be summed per
             # dimension and row order becomes the only way to tell them apart.
             "rubric": rubric,
+            # Which wording produced this verdict. Absent on rows written
+            # before the field existed, which is why it is optional.
+            "prompt_version": prompt_version or None,
             "timestamp": datetime.now(UTC).isoformat(),
         }
         with self.path.open("a") as handle:

@@ -132,10 +132,38 @@ and CI enforces the one that is mechanically checkable.
 
 Test-first throughout. No production code without a failing test watched failing first.
 
+**The documents are tested the same way the code is.** Each README is handed to a reader with
+no other context, working in a fresh clone, told to run what it says and record where it
+breaks. On 14 September that disproved five claims, three of which were defects in the code
+rather than in the prose, including a gate that quietly relaxed its own threshold. The
+protocol, the prompt and the findings are in **[COLD-READ.md](COLD-READ.md)**.
+
 The decommission feature in `cost_agent` exists because an earlier version filed a platform
 with a published sunset date under *right-sizing*: utilisation was the only signal it had
 for "should this exist", and the same evidence produced two answers millions apart. The
 fix was to take a stated end-of-life date as input rather than infer one.
+
+## What is not here yet
+
+**There is no golden set, and it is the next thing to build.** The gate halts when two raters
+disagree, and nothing anywhere measures whether the grade they agreed on was *right*. Every
+free path is covered by 419 tests. The paid paths, which are the ones that cost money and make
+the judgements, are checked by running them and reading the output.
+
+That matters more than it sounds, because two independent runs of the same fixture on
+14 September split on the same 3 of 4 drivers and gave different grades inside them.
+
+**And the obvious fix does not exist.** Pinning `temperature` would make runs comparable, and
+neither vendor allows it: Anthropic's Opus 5 and Sonnet 5 reject any value but 1, and Gemini 3
+has deprecated the parameter. So run-to-run variation cannot be controlled at the API layer on
+these models, which makes a labelled baseline the only way left to tell a prompt regression
+from noise. Every ledger row now carries the prompt version that produced it, so when the
+baseline exists there is something to attribute a change to.
+
+What it needs is the 8 incident fixtures labelled on each judgement dimension by a person, and
+a harness that reports agreement against those labels on every prompt or model change. The
+harness is a day. **The labels are the reason it is not here: ground truth is a human input,
+and inventing it would be exactly the fabrication this repository exists to catch.**
 
 ## Honest limitations
 

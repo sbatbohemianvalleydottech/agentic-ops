@@ -76,6 +76,11 @@ class Call:
     verdict: RaterVerdict | JudgeVerdict | None
     usage: Usage
     error: str | None = None
+    # Which prompt set produced this. Empty means nobody said, which is
+    # different from a version and is recorded as different. Without it a
+    # ledger row cannot be attributed to the wording that produced it, and no
+    # later claim about drift or regression can be checked.
+    prompt_version: str = ""
 
     @property
     def failed(self) -> bool:
