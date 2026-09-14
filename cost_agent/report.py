@@ -15,6 +15,12 @@ def _money(amount: Decimal) -> str:
     return f"${amount:,.2f}"
 
 
+def _count(number: int, noun: str) -> str:
+    """"1 resource", not "1 resources". A report that cannot count in English
+    invites the reader to wonder what else it cannot count."""
+    return f"{number} {noun}" if number == 1 else f"{number} {noun}s"
+
+
 def _pct(fraction: Decimal) -> str:
     return f"{fraction * 100:.1f}%"
 
@@ -49,8 +55,9 @@ def _driver_block(index: int, driver: Driver) -> list[str]:
         *render_confidence_reasoning(driver.confidence_raters),
         f"  What would change it:       {driver.what_would_change_confidence}",
         f"  Question needed to confirm: {driver.confirming_question}",
-        f"  Explains:                   {len({f.resource_id for f in driver.findings})} "
-        f"resources, {len(driver.findings)} findings",
+        f"  Explains:                   "
+        f"{_count(len({f.resource_id for f in driver.findings}), 'resource')}, "
+        f"{_count(len(driver.findings), 'finding')}",
     ]
 
     if driver.decommission_horizon:
@@ -140,10 +147,14 @@ def render_report(
     else:
         lines.append("  none.")
 
+    # Rendered whether or not anything is in it, like every section above.
+    # An absent heading and "checked, found nothing" are different claims.
+    lines.append("")
     if analysis.healthy:
-        lines += [
-            "",
-            f"Healthy: {len(analysis.healthy)} resources produced no finding.",
-        ]
+        lines.append(
+            f"Healthy: {_count(len(analysis.healthy), 'resource')} produced no finding."
+        )
+    else:
+        lines.append("Healthy: none. Every resource produced at least one finding.")
 
     return "\n".join(lines)

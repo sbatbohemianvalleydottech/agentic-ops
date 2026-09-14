@@ -16,13 +16,14 @@ Models are overridable, because nothing here should hardcode a vendor:
 import os
 import sys
 from datetime import datetime
-from pathlib import Path
 
-from ledger import Ledger
+from ledger import DEFAULT_PATH, Ledger
 
 from .env import load_env, setting
 from .gate import Decision
 from .orchestrator import Rater, run_decision
+from .preflight import preflight
+from .progress import StderrProgress
 from .report import format_halt_report
 from .types import EvidenceBundle, EvidenceRecord, Rubric
 
@@ -88,9 +89,18 @@ def main() -> int:
     judge = setting("JUDGE", DEFAULT_JUDGE)
 
     provider = LiteLLMProvider()
-    ledger = Ledger(Path(".ledger/calls.jsonl"))
+    ledger = Ledger(DEFAULT_PATH)
 
     print(f"Raters:  {rater_a}\n         {rater_b}\nJudge:   {judge}\n")
+
+    # The same probe every other paid path runs, for the same reason: a dead
+    # model or an unfunded account should cost a fraction of a cent to find,
+    # not a full run. Metered like any other call.
+    check = preflight([rater_a, rater_b, judge], ledger=ledger, caller="demo")
+    print(check.render(), file=sys.stderr)
+    if not check.ok:
+        print("Aborting before the run. Fix the above.", file=sys.stderr)
+        return 1
 
     result = run_decision(
         rubric=RUBRIC,
@@ -99,6 +109,9 @@ def main() -> int:
         judge=Rater(provider, judge),
         ledger=ledger,
         caller="demo",
+        # Progress to stderr, so a run that is working and a run that has hung
+        # do not look identical. Redirect stdout and the report stays clean.
+        progress=StderrProgress(),
     )
 
     if result.decision is Decision.PROCEED:
@@ -109,7 +122,7 @@ def main() -> int:
         print(format_halt_report(result))
 
     print(f"\nDecision {result.decision_id} cost ${ledger.cost_of(result.decision_id):.4f}")
-    print("Ledger: .ledger/calls.jsonl")
+    print(f"Ledger: {DEFAULT_PATH}")
     return 0
 
 
