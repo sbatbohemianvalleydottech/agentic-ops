@@ -64,6 +64,46 @@ def _timeline_defects(rca: RCA, rubric: Rubric) -> list[Defect]:
     return defects
 
 
+def _sentences(text: str) -> list[str]:
+    """Crude on purpose. A full sentence splitter would be a dependency and a
+    second thing to be wrong about; the question here is only whether a person
+    and a phrase are near each other."""
+    return [part for part in re.split(r"(?<=[.!?])\s+|\n+", text) if part.strip()]
+
+
+def _blame_phrase(field: str, lowered: str, rca: RCA, rubric: Rubric) -> str | None:
+    """The phrase that blames somebody, or None.
+
+    Two kinds. "Human error" names a person by construction and fires alone.
+    "Failed to" does not: subsystems fail to do things constantly, and a check
+    that reads "the job failed to start" as blame is the check nobody trusts by
+    the second week. Those only fire when a person is the subject of the same
+    sentence, which is somebody on the participant roster or one of the generic
+    subjects the rubric lists.
+
+    Found by running this against published incident reports, where the first
+    real document produced a false positive.
+    """
+    for phrase in rubric.blame_phrases_standalone:
+        if phrase in lowered:
+            return phrase
+
+    people = [name.lower() for name in rca.participants if name]
+    for sentence in _sentences(lowered):
+        # Whole words. "he" as a substring lives inside "the", which made
+        # every sentence look like it had a person in it.
+        has_person = any(name in sentence for name in people) or any(
+            re.search(rf"\b{re.escape(subject)}\b", sentence)
+            for subject in rubric.human_subjects
+        )
+        if not has_person:
+            continue
+        for phrase in rubric.blame_phrases:
+            if phrase in sentence:
+                return phrase
+    return None
+
+
 def _blameless_defects(rca: RCA, rubric: Rubric) -> list[Defect]:
     """Looks at the cause fields only. Never the narrative.
 
@@ -76,16 +116,15 @@ def _blameless_defects(rca: RCA, rubric: Rubric) -> list[Defect]:
     for field in rca.cause_fields:
         lowered = field.lower()
 
-        for phrase in rubric.blame_phrases:
-            if phrase in lowered:
-                defects.append(
-                    Defect(
-                        dimension=Dimension.BLAMELESS,
-                        detail=f"cause attributes the failure to a person: {phrase!r}",
-                        quote=field,
-                    )
+        phrase = _blame_phrase(field, lowered, rca, rubric)
+        if phrase:
+            defects.append(
+                Defect(
+                    dimension=Dimension.BLAMELESS,
+                    detail=f"cause attributes the failure to a person: {phrase!r}",
+                    quote=field,
                 )
-                break
+            )
 
         for name in rca.participants:
             if name and name in field:

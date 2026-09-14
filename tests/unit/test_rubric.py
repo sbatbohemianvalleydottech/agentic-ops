@@ -34,8 +34,14 @@ def test_the_four_moments_from_the_source_practice_are_the_default():
 
 def test_human_error_is_a_blame_phrase_by_default():
     """PagerDuty's central point: mistakes are rarely rooted in one person's
-    actions, so 'human error' is never the cause."""
-    assert "human error" in load_rubric().blame_phrases
+    actions, so 'human error' is never the cause.
+
+    It sits in the standalone list rather than the conditional one, because it
+    names a person by construction and needs no subject beside it.
+    """
+    rubric = load_rubric()
+    assert "human error" in rubric.blame_phrases_standalone
+    assert "human error" not in rubric.blame_phrases
 
 
 def test_the_export_window_defaults_to_the_incident_io_policy_shape():

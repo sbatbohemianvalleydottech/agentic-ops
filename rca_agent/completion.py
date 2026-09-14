@@ -40,6 +40,10 @@ def report_completion(
         for rca in corpus
         # An incident nobody has closed cannot have overdue follow-ups.
         if rca.closed_at is not None
+        # Neither can one that agreed none. That review has a worse problem and
+        # the report already names it separately; calling it an export breach
+        # points a reader at tracker hygiene when nobody committed to anything.
+        and rca.action_items
         and rca.followups_exported_at is None
         and as_of - rca.closed_at > timedelta(days=rubric.export_window_days)
     )

@@ -17,10 +17,12 @@ required_moments = ["detection", "escalation", "mitigation", "resolution"]
 # These are matched against the stated cause and contributing factors ONLY, never
 # the narrative. "Sam restarted the service" is good practice. "Sam failed to
 # check the config" is the failure. Language is a far better signal than a name.
+# Phrases that only blame somebody when a person is the subject of the same
+# sentence. "The engineer failed to check the config" is blame. "The job failed
+# to start" is ordinary incident English, and a check that fires on it trains
+# people to ignore the check, which is the failure this rubric exists to avoid.
+# Found by running the tool against published incident reports.
 blame_phrases = [
-    "human error",
-    "operator error",
-    "user error",
     "failed to",
     "forgot to",
     "should have known",
@@ -32,6 +34,18 @@ blame_phrases = [
 # incident.io ships a policy of this shape: critical incidents must export
 # follow-ups to an external tracker within a window of closure. Seven days is
 # their example. It converts "we agreed to do things" into a checkable claim.
+# Blame on their own, with no subject needed: each names a person by
+# construction.
+blame_phrases_standalone = ["human error", "operator error", "user error"]
+
+# What counts as a person, besides anybody on the incident's own participant
+# roster. Add your own titles here rather than editing code.
+human_subjects = [
+    "engineer", "operator", "on-call", "oncall", "developer", "technician",
+    "administrator", "admin", "analyst", "someone", "somebody", "he", "she",
+    "they",
+]
+
 export_window_days = 7
 
 # The scale judgement dimensions are graded on. Needs at least two grades or
