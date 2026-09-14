@@ -1,0 +1,30 @@
+# A price table that cannot be loaded, on purpose.
+#
+# Two rows carry the same key. There is no correct answer to "what does an
+# e2-standard-4 cost in us-central1" here, so the tool refuses at load rather
+# than picking one, because a total built from the wrong row looks exactly like
+# a total built from the right one.
+#
+# Run it to see the refusal:
+#   python -m plan_cost --plan plan_cost/fixtures/demo/staging-normal.json \
+#     --prices plan_cost/fixtures/demo/prices.duplicate-row.toml
+
+[[price]]
+key      = "google/machine-type/e2-standard-4/us-central1"
+unit     = "hour"
+amount   = "0.20"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-13"
+sku_id   = ""
+
+[[price]]
+key      = "google/machine-type/e2-standard-4/us-central1"
+unit     = "hour"
+amount   = "0.25"
+currency = "USD"
+region   = "us-central1"
+source   = "synthetic demo rate, not a quotation"
+taken_on = "2026-09-14"
+sku_id   = ""

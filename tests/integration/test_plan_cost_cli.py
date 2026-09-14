@@ -119,14 +119,31 @@ def test_the_budget_says_it_does_not_know_current_spend(capsys):
     assert "Current spend is unknown to this tool" in " ".join(out.split())
 
 
-def test_an_unusable_budget_falls_back_and_says_why(capsys):
-    """Two budgets and no name. The tool will not pick one for you."""
+def test_an_ambiguous_budget_refuses_rather_than_picking(capsys):
+    """Two budgets and no name. The tool will not pick one for you.
+
+    It used to warn and judge the plan against the policy file's $250.00
+    instead of the budget's $200.00, which loosened the gate at the one moment
+    the operator had asked for a tighter one.
+    """
     code, out, err = run(
         capsys, "--plan", ESTATE, "--env", "staging", "--budget-json", BUDGETS,
     )
-    assert code == 1
-    assert "$250.00" in out
+    assert code == 2
     assert "--budget-name" in err
+    # No report at all. A refusal must not look like a verdict.
+    assert "$250.00" not in out
+    assert "DECISION" not in out
+
+
+def test_naming_a_budget_that_is_not_there_refuses_too(capsys):
+    code, out, err = run(
+        capsys, "--plan", ESTATE, "--env", "staging",
+        "--budget-json", BUDGETS, "--budget-name", "no-such-budget",
+    )
+    assert code == 2
+    assert "no-such-budget" in err
+    assert "DECISION" not in out
 
 
 def test_a_refresh_takes_prices_from_the_catalogue(capsys, tmp_path):

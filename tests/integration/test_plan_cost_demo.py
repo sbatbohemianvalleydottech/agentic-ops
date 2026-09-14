@@ -120,3 +120,39 @@ def test_the_same_plan_passes_the_config_threshold_and_fails_your_budget(capsys)
     assert blocks == 1
     assert "+$232.50 at or under $250.00" in config_out
     assert "+$232.50 over $200.00" in budget_out
+
+
+# Every documented way to reach exit 2 now ships a fixture. A cold reader with
+# only the README found that two of the four were described and not runnable,
+# so they had to take those on faith or fabricate input to check them.
+
+
+def test_a_plan_format_this_tool_has_not_been_checked_against_refuses(capsys):
+    code, out, err = run(
+        capsys, "--plan", DEMO / "unchecked-format-version.json", "--prices", PRICES
+    )
+    assert code == 2
+    assert "2.0" in err and "1.x" in err
+    assert out == ""
+
+
+def test_a_price_table_with_two_rows_for_one_key_refuses(capsys):
+    code, out, err = run(
+        capsys,
+        "--plan", DEMO / "staging-normal.json",
+        "--prices", DEMO / "prices.duplicate-row.toml",
+    )
+    assert code == 2
+    assert "two rows carry the key" in err
+    assert out == ""
+
+
+def test_neither_refusal_prints_a_figure(capsys):
+    """Exit 2 means could not judge. It must never look like a verdict."""
+    for plan, prices in (
+        ("unchecked-format-version.json", PRICES),
+        ("staging-normal.json", DEMO / "prices.duplicate-row.toml"),
+    ):
+        _, out, _ = run(capsys, "--plan", DEMO / plan, "--prices", prices)
+        assert "$" not in out
+        assert "DECISION" not in out

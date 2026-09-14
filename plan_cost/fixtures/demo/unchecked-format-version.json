@@ -1,0 +1,30 @@
+{
+  "format_version": "2.0",
+  "terraform_version": "2.0.0",
+  "variables": {
+    "environment": {
+      "value": "staging"
+    }
+  },
+  "resource_changes": [
+    {
+      "address": "google_compute_instance.api",
+      "mode": "managed",
+      "type": "google_compute_instance",
+      "name": "api",
+      "provider_name": "registry.terraform.io/hashicorp/google",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": {
+          "name": "api-1",
+          "machine_type": "e2-standard-4",
+          "zone": "us-central1-a"
+        },
+        "after_unknown": {},
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    }
+  ]
+}

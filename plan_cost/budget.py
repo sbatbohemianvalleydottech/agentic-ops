@@ -18,11 +18,25 @@ from dataclasses import dataclass
 from decimal import Decimal
 from typing import Any
 
-NANOS = Decimal(1_000_000_000)
+from plan_cost.gcp import money_from_api
 
 
 class BudgetError(Exception):
     """No threshold can be derived. Never resolved by picking a number."""
+
+
+class BudgetSelectionError(BudgetError):
+    """The operator asked for a budget this response cannot identify.
+
+    Separate from the rest because the remedy is different. A budget that
+    cannot yield a threshold is a fact about the data, and falling back to the
+    policy file with a warning is reasonable. A budget nobody named, or a name
+    that matches nothing, is the operator's input being wrong, and falling back
+    there would judge the plan against a threshold they did not ask for. In the
+    shipped fixtures the policy file is the looser of the two, so the quiet
+    fallback loosened the gate. A gate that quietly became a report is worse
+    than no gate, and that applies to budgets as much as to environments.
+    """
 
 
 @dataclass(frozen=True)
@@ -47,7 +61,7 @@ def threshold_from(document: Mapping[str, Any], *, name: str | None = None) -> T
             f"budget {display!r} is set to lastPeriodAmount, which carries no figure in "
             "the response, so no threshold can be derived from it"
         )
-    total = _money(amount["specifiedAmount"])
+    total = money_from_api(amount["specifiedAmount"])
 
     rules = budget.get("thresholdRules") or []
     percents = [
@@ -79,20 +93,16 @@ def _select(budgets: list[Mapping[str, Any]], name: str | None) -> Mapping[str, 
             if str(budget.get("displayName", "")) == name:
                 return budget
         held = ", ".join(str(b.get("displayName", "unnamed")) for b in budgets)
-        raise BudgetError(f"no budget named {name!r}; the response holds {held}")
+        raise BudgetSelectionError(
+            f"no budget named {name!r}; the response holds {held}"
+        )
     if len(budgets) == 1:
         return budgets[0]
     held = ", ".join(str(b.get("displayName", "unnamed")) for b in budgets)
-    raise BudgetError(
+    raise BudgetSelectionError(
         f"the response holds {len(budgets)} budgets ({held}); name one with --budget-name "
         "rather than having this tool pick"
     )
-
-
-def _money(specified: Mapping[str, Any]) -> Decimal:
-    units = Decimal(str(specified.get("units", "0") or "0"))
-    nanos = Decimal(str(specified.get("nanos", 0) or 0))
-    return units + nanos / NANOS
 
 
 def _filter(budget_filter: Mapping[str, Any]) -> str:

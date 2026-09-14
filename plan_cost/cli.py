@@ -17,7 +17,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from .budget import BudgetError, threshold_from
+from .budget import BudgetError, BudgetSelectionError, threshold_from
 from .gate import decide
 from .plan import PlanError, load_plan
 from .policy import Policy, PolicyError, action_for, load_policy, resolve_environment
@@ -126,6 +126,8 @@ def _threshold(args: argparse.Namespace, policy: Policy):
     """The monthly limit, and the note explaining where it came from.
 
     A budget that cannot produce one is a warning and a fallback, never a guess.
+    A budget the operator failed to identify is neither: it refuses, because
+    falling back would judge the plan against a threshold nobody asked for.
     """
     if args.budget is None:
         return policy.threshold, ""
@@ -136,6 +138,9 @@ def _threshold(args: argparse.Namespace, policy: Policy):
         return None, ""
     try:
         derived = threshold_from(document, name=args.budget_name)
+    except BudgetSelectionError as exc:
+        print(f"plan_cost: {exc}", file=sys.stderr)
+        return None, ""
     except BudgetError as exc:
         print(
             f"plan_cost: {exc}. Falling back to the threshold in the policy file",

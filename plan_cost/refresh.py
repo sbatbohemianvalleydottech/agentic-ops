@@ -21,8 +21,9 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
+from plan_cost.gcp import money_from_api
+
 CATALOGUE_SOURCE = "https://cloudbilling.googleapis.com/v1/services/6F81-5844-456A/skus"
-NANOS = Decimal(1_000_000_000)
 VALUE = re.compile(r'(?P<head>^\s*\w+\s*=\s*)"[^"]*"')
 
 
@@ -102,19 +103,13 @@ def _find(catalogue: Mapping[str, Any], entry: Mapping[str, Any]) -> tuple[Decim
         if not pricing:
             return "the matching SKU carries no pricingInfo"
         tiers = (pricing[-1].get("pricingExpression") or {}).get("tieredRates") or []
-        priced = [tier for tier in tiers if _money(tier.get("unitPrice") or {}) != 0]
+        priced = [tier for tier in tiers if money_from_api(tier.get("unitPrice") or {}) != 0]
         if len(priced) != 1:
             return (
                 f"priced in {len(tiers)} tiers, which cannot honestly become one rate"
             )
-        return _money(priced[0]["unitPrice"]), str(sku.get("skuId", ""))
+        return money_from_api(priced[0]["unitPrice"]), str(sku.get("skuId", ""))
     return f"no SKU in the response matches {entry.get('description')!r} in {region}"
-
-
-def _money(unit_price: Mapping[str, Any]) -> Decimal:
-    units = Decimal(str(unit_price.get("units", "0") or "0"))
-    nanos = Decimal(str(unit_price.get("nanos", 0) or 0))
-    return units + nanos / NANOS
 
 
 def _rewrite(
