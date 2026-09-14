@@ -361,7 +361,7 @@ session, retrieved per question from the library's published documentation, so c
 written against the library as it is rather than as a model remembers it. The rule from
 step 5 makes it the default for library, framework, SDK, API and CLI questions, which is
 why it gets used without being asked for: 138 calls in the transcripts this machine
-retains, counted at 22:46Z on 10 September.
+retains, counted on 10 September.
 
 The example worth giving comes from the session that built this repository. At
 06:14:39Z and 06:14:40Z on 10 September, that session asked Context7 two questions about
@@ -386,7 +386,7 @@ machine retains. They are configured, not used.
 ### 3. Top five skills
 
 None is authored. All five are installed. They are ranked by Claude Code's own usage
-counter, `skillUsage` in `~/.claude.json`, read at 22:46Z on 10 September. It is
+counter, `skillUsage` in `~/.claude.json`, read on 10 September. It is
 cumulative, and its oldest recorded use is from 19 March 2026. Spec Kit is counted once,
 because its commands are one tool, recorded under two naming schemes across its versions.
 
@@ -497,8 +497,7 @@ The reason, in my words:
 
 > Cost efficiency. Sonnet is cheaper.
 
-What actually ran, counted in the transcripts this machine retains at 22:46Z on 10
-September:
+What actually ran, counted in the transcripts this machine retains on 10 September:
 
 - **Main loop**: 24,046 messages recorded as `claude-opus-5` and 60 as `claude-opus-5[1m]`.
   Another 382, all in one other project, were `claude-fable-5`.
@@ -506,7 +505,7 @@ September:
   messages between them. The oldest are from 4 July and belong to a session last written
   on 6 September.
 - **One exception**. The 47th transcript is a built-in Explore agent, started in the
-  background in another project at 22:10Z on 10 September with no model requested. All
+  background in another project on 10 September with no model requested. All
   106 of its messages ran on Opus. The docs say `CLAUDE_CODE_SUBAGENT_MODEL` outranks every
   other way a subagent's model is chosen, and no setting in that project overrides it, so
   this run is unexplained. It is recorded here rather than averaged away.
