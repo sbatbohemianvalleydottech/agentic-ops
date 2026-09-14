@@ -55,3 +55,15 @@ grade_scale = ["weak", "adequate", "strong"]
 # PagerDuty's template treats contributing factors as plural by design. A single
 # root cause with nothing contributing to it is rare enough to be worth a look.
 min_contributing_factors = 2
+
+# What a document has to record before --judgement is worth paying for. Any one
+# of these present is enough. All of them absent means the document states
+# neither why the incident happened nor what anyone will do about it, so the
+# three judgement dimensions have nothing to read, and two vendors plus a judge
+# will return weak or contested on every one of them.
+#
+# Found by pointing --judgement at published status page entries: $0.2817 spent
+# grading the depth of analysis in documents containing no analysis, which the
+# free structural pass had already established. Override per run with
+# --judge-anyway, or empty this list to switch the bar off entirely.
+judgement_requires_any = ["contributing_factors", "action_items"]

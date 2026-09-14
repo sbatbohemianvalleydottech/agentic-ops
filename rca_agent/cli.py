@@ -13,6 +13,7 @@ from .report import render_completion, render_review
 from .rubric import load_rubric
 from .structure import check_structure
 from .types import load_corpus
+from .worth_judging import below_bar
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -57,6 +58,16 @@ def build_parser() -> argparse.ArgumentParser:
         help=(
             "assess the judgement dimensions with two independent assessors and a "
             "judge. The only part that spends money"
+        ),
+    )
+    parser.add_argument(
+        "--judge-anyway",
+        dest="judge_anyway",
+        action="store_true",
+        help=(
+            "judge every review, including those the rubric's "
+            "judgement_requires_any bar says record nothing to judge. The bar is "
+            "a judgement about your documents, so you get to overrule it"
         ),
     )
     return parser
@@ -166,8 +177,20 @@ def main(argv: list[str] | None = None) -> int:
         review = check_structure(rca, rubric, args.as_of)
         if review.defects:
             defective.append(rca.rca_id)
-        grades = assessor(rca) if assessor else None
-        print(render_review(review, grades, models=models if assessor else None))
+
+        # Checked before the assessor is called, never after, because the whole
+        # point is the call that does not happen.
+        unjudged = None if args.judge_anyway else below_bar(rca, rubric)
+        grades = assessor(rca) if assessor and not unjudged else None
+
+        print(
+            render_review(
+                review,
+                grades,
+                models=models if assessor else None,
+                unjudged=unjudged if assessor else None,
+            )
+        )
 
     if args.completion:
         print(render_completion(report_completion(corpus, rubric, args.as_of)))

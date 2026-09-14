@@ -16,6 +16,7 @@ def render_review(
     review: Review,
     grades: list[DimensionGrade] | None = None,
     models: tuple[str, str, str] | None = None,
+    unjudged: str | None = None,
 ) -> str:
     lines = [f"RCA {review.rca_id}", ""]
 
@@ -40,7 +41,13 @@ def render_review(
             "",
         ]
 
-    if models:
+    if unjudged:
+        # Printed where the dimensions would have been, so a reader sees a
+        # refusal rather than an absence. An omitted section and a section that
+        # was declined are different claims, which is the same argument the
+        # empty headings elsewhere in this repository are made of.
+        lines += ["  Judgement dimensions", "", *wrap(unjudged, indent=4), ""]
+    elif models:
         # The first question an audit asks about an automated judgement is what
         # produced it. The ledger knows; the report is what people read.
         lines += [

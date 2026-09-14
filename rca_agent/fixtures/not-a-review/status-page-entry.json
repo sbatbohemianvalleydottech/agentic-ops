@@ -1,0 +1,16 @@
+{
+  "rca_id": "status-page-entry",
+  "severity": "sev2",
+  "timeline": [
+    {"name": "detection", "at": "2026-09-04T20:39:03"},
+    {"name": "mitigation", "at": "2026-09-04T22:25:44"},
+    {"name": "resolution", "at": "2026-09-04T22:26:46"}
+  ],
+  "impact": "We are investigating reports of degraded performance for some services.",
+  "stated_cause": "Between 20:04 and 22:26 UTC the service experienced an increased failure rate. Affected requests failed to complete.",
+  "contributing_factors": [],
+  "narrative": "[20:39] We are investigating reports of degraded performance.\n[20:57] Some users may be experiencing failures.\n[22:25] We have applied a mitigation and are monitoring.\n[22:26] This incident has been resolved.",
+  "participants": [],
+  "action_items": [],
+  "closed_at": "2026-09-04T22:26:46"
+}
