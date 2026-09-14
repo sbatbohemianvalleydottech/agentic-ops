@@ -13,7 +13,7 @@
 #
 # Refresh from the vendor's own catalogue with:
 #   python -m plan_cost --refresh-prices skus.json
-# Where skus.json comes from is in specs/011-plan-cost/contracts/price-table.md.
+# The command that produces skus.json is in plan_cost/README.md, under The paid path.
 
 [[price]]
 key      = "google/machine-type/e2-standard-4/us-central1"

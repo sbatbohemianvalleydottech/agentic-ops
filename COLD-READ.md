@@ -44,9 +44,15 @@ all four reached a working paid run. They still disproved five claims.
 | "Two budgets and no name is an error rather than a pick" | It warned on stderr and judged the plan against a **looser** threshold, which is the failure that same document calls impossible |
 | `rca_agent` "prints about 65 lines" | It prints 77, and the correct number was already written down one file away |
 
-**Three of those five were defects in the code, not in the prose.** The gate that quietly
-relaxed now exits 2. Every category renders. The headline figures are now derivable from two
-commands the document gives you.
+**Two of those five were defects in the code, not in the prose**: the gate that quietly
+relaxed now exits 2, and every category renders. The other three were fixed in the documents,
+including the unreproducible headline figures, which are now derivable from two commands the
+document hands you rather than from a report that never printed them.
+
+That count was wrong here until an outside reviewer checked it against the commits. It said
+three. `git show 54c71fb --stat` is eight markdown files and no source, so it was two. A
+document about catching drift, drifting, is the joke it deserves to be, and it is recorded
+rather than quietly corrected.
 
 A sixth finding came from the same run: the `ensemble` demo printed nothing to stderr and ran
 no preflight, while the root README claimed every paid pass does both. The demo was changed

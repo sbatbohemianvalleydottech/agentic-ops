@@ -12,7 +12,7 @@
 #                      can prove the comparison fails.
 #
 # Needs claude, jq, curl, and network access to GitHub and Context7. Makes no model call.
-# Contract: specs/010-executable-setup/contracts/step-blocks.md
+# Contract: the step-block format is documented in setup/README.md, under Steps.
 set -euo pipefail
 
 readme=${VERIFY_README:-$(cd "$(dirname "$0")" && pwd)/README.md}

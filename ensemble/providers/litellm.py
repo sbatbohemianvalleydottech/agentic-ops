@@ -10,6 +10,7 @@ Model strings are LiteLLM's provider-prefixed form, for example
 model, so changing provider is configuration.
 """
 
+import hashlib
 import json
 import os
 
@@ -49,11 +50,6 @@ JUDGE_SCHEMA = {
 # prefix to sit on. No cache_control is set yet, because at 308 evidence tokens
 # we are below the 512-token minimum on Opus 5 and a marker would silently do
 # nothing. See the preflight module.
-# Bump when either prompt below changes. It travels to the ledger on every
-# row, so a verdict recorded last month can be attributed to the wording that
-# produced it rather than to whatever the file says today.
-PROMPT_VERSION = "1"
-
 # NO SAMPLING PARAMETER IS SENT, and that is not an oversight.
 #
 # Two runs of the same fixture give different grades, so the obvious move is to
@@ -112,6 +108,32 @@ def _render(evidence: EvidenceBundle) -> str:
         f"- [{record.ref}] {record.source} {record.timestamp:%Y-%m-%d}: {record.content}"
         for record in evidence.records
     )
+
+
+def version_of(*prompts: str) -> str:
+    """A short, stable fingerprint of the prompt set that produced a verdict.
+
+    Derived rather than typed. It was a hand-bumped "1" with a comment asking
+    whoever edits a prompt to remember, which is the one place this repository
+    asked a person to do what it mechanises everywhere else. A stale version is
+    worse than none: it does not lose the attribution, it asserts that two
+    different prompts were the same one.
+
+    Order is part of the input, so a rater prompt pasted into the judge slot
+    changes it. Twelve hex characters is enough to tell versions apart in a
+    ledger and short enough to read in a row.
+    """
+    digest = hashlib.sha256()
+    for prompt in prompts:
+        digest.update(prompt.encode("utf-8"))
+        digest.update(b"\x00")  # so ("ab", "c") and ("a", "bc") differ
+    return digest.hexdigest()[:12]
+
+
+# Travels to the ledger on every row, so a verdict recorded last month can be
+# attributed to the wording that produced it rather than to whatever the file
+# says today.
+PROMPT_VERSION = version_of(_RATER_PROMPT, _JUDGE_PROMPT)
 
 
 def _response_format(model: str, schema: dict, name: str) -> dict:
