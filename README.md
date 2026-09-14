@@ -44,6 +44,7 @@ when not to reach for a model is the harder half of the claim.
 | **[`rca_agent`](rca_agent/README.md)** | Catches the incident review that reads well and says nothing |
 | **[`plan_cost`](plan_cost/README.md)** | Prices a Terraform plan before it merges and blocks in staging, with no model in it |
 | **[`setup`](setup/README.md)** | The Claude Code setup this was built with, as steps your own Claude Code can run |
+| **[`tools`](tools/)** | The cold-read prompt, and the script CI uses to assert an exit code |
 
 `ensemble` and `ledger` import nothing from any agent. A contract test enforces it, and
 discovers agent packages from the directory tree, so an agent added later is covered
@@ -157,6 +158,16 @@ for "should this exist", and the same evidence produced two answers millions apa
 fix was to take a stated end-of-life date as input rather than infer one.
 
 ## What is not here yet
+
+**Principle II is the one principle taken on trust.** The constitution says every claim in
+generated output must cite the evidence record supporting it, and that a claim which cannot
+cite must be dropped rather than softened. The rater prompt asks for exactly that. Nothing checks
+that the reply contains one, or that a reference it cites is real: `RaterVerdict.reasoning` is
+an unconstrained string, and neither the gate nor the orchestrator inspects it. Principle IV is
+enforced by an AST check in CI precisely because review is not enforcement, and the same
+argument applies here and has not been acted on. The fix is small, a reply citing no real
+reference routed down the existing no-verdict path, and it is a behaviour change so it goes
+test-first.
 
 **There is no golden set, and it is the next thing to build.** The gate halts when two raters
 disagree, and nothing anywhere measures whether the grade they agreed on was *right*. Every

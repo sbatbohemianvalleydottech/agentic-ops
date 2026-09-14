@@ -155,6 +155,13 @@ These are decisions, not laws, and each one is a place a reasonable reviewer mig
   survivors, which halves the guarantee at the moment something is already wrong.
 - **Two raters and one judge**, rather than five raters and a threshold. Three calls is
   what most judgements are worth; the shape is a constructor argument if you disagree.
+- **The judge shares a vendor with one rater, and the defence does not cover that.** The
+  raters are deliberately split across Anthropic and Google, because shared training lineage
+  is what makes correlated failure likely. The default judge is `anthropic/claude-sonnet-5`,
+  the same family as one rater. The argument for two vendors was never extended to the third
+  call. Either put the judge on a third vendor, which is one environment variable, or accept
+  that a correlated failure between rater A and the judge is not defended against. It is
+  raised here rather than left for a reader to notice.
 
 ## The paid path
 
@@ -184,11 +191,12 @@ redirecting stdout leaves a clean report. Everything else in this package runs f
 .venv/bin/python -m pytest tests/unit/test_gate.py tests/unit/test_gate_edges.py \
   tests/unit/test_types.py tests/unit/test_providers.py tests/unit/test_preflight.py \
   tests/unit/test_preflight_is_metered.py tests/unit/test_call_cost.py \
-  tests/unit/test_prompt_version.py \
+  tests/unit/test_prompt_version.py tests/unit/test_env.py tests/unit/test_explain.py \
+  tests/unit/test_wrap.py tests/unit/test_progress.py tests/unit/test_report.py \
   tests/integration/test_orchestrator.py tests/contract/test_imports.py
 ```
 
-61 tests. Everything passes offline against the fake provider. **No API key is needed for any test.**
+98 tests. Everything passes offline against the fake provider. **No API key is needed for any test.**
 If one ever is, the gate has stopped being auditable for free, which is the property worth
 protecting, and CI checks for it. `tests/contract/test_imports.py` is the one enforcing
 that this package imports nothing from an agent.
