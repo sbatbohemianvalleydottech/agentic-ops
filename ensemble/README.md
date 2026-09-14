@@ -192,12 +192,12 @@ redirecting stdout leaves a clean report. Everything else in this package runs f
   tests/unit/test_types.py tests/unit/test_providers.py tests/unit/test_preflight.py \
   tests/unit/test_preflight_is_metered.py tests/unit/test_call_cost.py \
   tests/unit/test_prompt_version.py tests/unit/test_prompt_version_is_derived.py \
-  tests/unit/test_env.py tests/unit/test_explain.py \
+  tests/unit/test_reasoning_is_readable.py tests/unit/test_env.py tests/unit/test_explain.py \
   tests/unit/test_wrap.py tests/unit/test_progress.py tests/unit/test_report.py \
   tests/integration/test_orchestrator.py tests/contract/test_imports.py
 ```
 
-105 tests. Everything passes offline against the fake provider. **No API key is needed for any test.**
+118 tests. Everything passes offline against the fake provider. **No API key is needed for any test.**
 If one ever is, the gate has stopped being auditable for free, which is the property worth
 protecting, and CI checks for it. `tests/contract/test_imports.py` is the one enforcing
 that this package imports nothing from an agent.

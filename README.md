@@ -69,7 +69,7 @@ clone before it was written down.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/python -m pytest                    # 453 passed, 8 skipped, ~0.6s
+.venv/bin/python -m pytest                    # 494 passed, 9 skipped, ~0.6s
 
 .venv/bin/python -m cost_agent \
   --costs cost_agent/fixtures/estate_a/costs.csv \
@@ -96,7 +96,7 @@ The default install deliberately leaves the provider library out, so **the paid 
 one more install**. Skip it and every paid command stops with `litellm is not installed`:
 
 ```bash
-uv pip install -e ".[dev,providers]"   # adds litellm; the suite goes 453+8 -> 467
+uv pip install -e ".[dev,providers]"   # adds litellm; the suite goes 494+9 -> 509
 cp .env.example .env                   # then paste your keys into .env
 ```
 
@@ -143,7 +143,7 @@ and CI enforces the one that is mechanically checkable.
 
 Test-first throughout. No production code without a failing test watched failing first.
 
-Coverage is a floor in CI at 88%, currently 89.7% across 467 tests. The two paid demos sit at
+Coverage is a floor in CI at 88%, currently 89.8% across 509 tests. The two paid demos sit at
 0% and are counted anyway, because excluding them would be measuring the easy part.
 
 **The documents are tested the same way the code is.** Each README is handed to a reader with
@@ -171,7 +171,7 @@ test-first.
 
 **There is no golden set, and it is the next thing to build.** The gate halts when two raters
 disagree, and nothing anywhere measures whether the grade they agreed on was *right*. Every
-free path is covered by 467 tests. The paid paths, which are the ones that cost money and make
+free path is covered by 509 tests. The paid paths, which are the ones that cost money and make
 the judgements, are checked by running them and reading the output.
 
 That matters more than it sounds, because two independent runs of the same fixture on

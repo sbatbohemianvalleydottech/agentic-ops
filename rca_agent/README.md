@@ -324,12 +324,13 @@ Those are the lines every failure of the first live run happened in.
 
 ```bash
 .venv/bin/python -m pytest tests/unit/test_structure.py tests/unit/test_rubric.py \
-  tests/unit/test_completion.py tests/unit/test_rca_report.py tests/unit/test_rca_types.py \
+  tests/unit/test_completion.py tests/unit/test_rca_report.py tests/unit/test_rca_types.py tests/unit/test_blame_needs_a_person.py \
+  tests/unit/test_export_breach_needs_followups.py \
   tests/integration/test_corpus.py tests/integration/test_judgement.py \
   tests/integration/test_rca_gate.py
 ```
 
-61 tests, offline, no credentials. `tests/integration/test_corpus.py` is the one asserting
+78 tests, offline, no credentials. `tests/integration/test_corpus.py` is the one asserting
 that each fixture fails only the check it was built to fail.
 
 ## Dependencies

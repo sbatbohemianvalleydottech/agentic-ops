@@ -237,10 +237,11 @@ Those are the lines every failure of the first live run happened in.
 .venv/bin/python -m pytest tests/unit/test_classify.py tests/unit/test_drivers.py \
   tests/unit/test_savings.py tests/unit/test_inputs.py tests/unit/test_thresholds.py \
   tests/unit/test_cost_report.py tests/integration/test_generalises.py \
-  tests/integration/test_confidence.py tests/integration/test_cost_report_consistency.py
+  tests/unit/test_savings_horizon_total.py tests/integration/test_confidence.py \
+  tests/integration/test_cost_report_consistency.py
 ```
 
-88 tests, offline, no credentials.
+94 tests, offline, no credentials.
 
 ## Dependencies
 

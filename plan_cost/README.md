@@ -363,12 +363,12 @@ nothing here opens a socket.
   tests/unit/test_plan_coverage.py tests/unit/test_plan_prices.py tests/unit/test_plan_pricing.py \
   tests/unit/test_plan_rules.py tests/unit/test_plan_policy.py tests/unit/test_plan_gate.py \
   tests/unit/test_plan_refresh.py tests/unit/test_plan_budget.py \
-  tests/unit/test_plan_budget_ambiguity.py tests/unit/test_plan_gcp.py \
+  tests/unit/test_plan_budget_ambiguity.py tests/unit/test_plan_gcp.py tests/unit/test_plan_report_counts.py \
   tests/integration/test_plan_cost_cli.py tests/integration/test_plan_cost_demo.py \
   tests/contract/test_no_network.py
 ```
 
-162 tests, offline, no credentials.
+168 tests, offline, no credentials.
 
 ## Dependencies
 
