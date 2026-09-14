@@ -20,6 +20,7 @@ from .gate import Decision
 from .policy import Policy
 from .prices import PriceTable
 from .pricing import PricedPlan
+from .refresh import CATALOGUE_SOURCE
 from .rules import Finding
 
 LABELS = {
@@ -56,6 +57,7 @@ def render(
     lines += _heading(priced, decision, table, prices_path)
     lines += _priced(priced)
     lines += _not_counted(priced.coverage)
+    lines += _missing_rows(priced.coverage.missing_keys, prices_path)
     lines += _findings(findings)
     lines += _decision(decision, policy, threshold_note, has_figure=priced.has_figure)
     # No trailing whitespace: the report is pasted into pull requests and diffs.
@@ -117,6 +119,55 @@ def _not_counted(coverage: Summary) -> list[str]:
     total = len(coverage.buckets)
     counted = sum(coverage.counts.values())
     return lines + [_coverage_line(total, counted), ""]
+
+
+# A gate report is pasted into pull requests. Forty lines of price keys is not
+# a report, and the refresh adds every key in the catalogue rather than only the
+# ones listed, so a capped list costs the reader nothing.
+MOST_KEYS_SHOWN = 10
+
+
+def _short(path: Path) -> str:
+    """The path as someone in this directory would type it.
+
+    The default price table resolves to an absolute path, so printing it raw
+    puts whoever ran the tool's home directory into a report that gets pasted
+    into pull requests. Relative to the working directory it is still runnable
+    as printed, from the same place every documented command is run from.
+    """
+    try:
+        return str(path.resolve().relative_to(Path.cwd()))
+    except ValueError:
+        return str(path)
+
+
+def _missing_rows(missing_keys: Sequence[str], prices_path: Path) -> list[str]:
+    """What to do about a key that had no row.
+
+    Kept out of the Not counted block above: that block counts and this one
+    instructs, and the coverage arithmetic stays one clean line.
+
+    Two commands, because the operator has no catalogue file yet and a command
+    assuming an input they do not have is a description of a command. The URL
+    comes from the refresher rather than a copy of it, so the printed command
+    cannot drift from the one it describes, and the second names the table
+    actually in use rather than the shipped default.
+    """
+    if not missing_keys:
+        return []
+    lines = ["  Missing price rows"]
+    lines += [f"    {key}" for key in missing_keys[:MOST_KEYS_SHOWN]]
+    if len(missing_keys) > MOST_KEYS_SHOWN:
+        lines.append(f"    and {len(missing_keys) - MOST_KEYS_SHOWN} more")
+    return lines + [
+        "  Fetch a catalogue and add them:",
+        '    curl -H "Authorization: Bearer $(gcloud auth print-access-token)" \\',
+        f'      "{CATALOGUE_SOURCE}" > skus.json',
+        f"    .venv/bin/python -m plan_cost --refresh-prices skus.json "
+        f"--prices {_short(prices_path)}",
+        "  That rewrites the table in place, so copy it first if that matters.",
+        "",
+    ]
 
 
 def _why(coverage: Summary, bucket: Bucket) -> str:

@@ -33,6 +33,11 @@ class Summary:
     before: list[tuple[Unit, ...]]
     after: list[tuple[Unit, ...]]
     counts: dict[Bucket, int]
+    # Every key the pricer looked for and did not find, deduplicated and sorted.
+    # The bucket reason keeps only the first of a resource's missing keys, which
+    # explains that resource and cannot instruct anyone. Defaulted, so anything
+    # constructing a Summary without it still works.
+    missing_keys: tuple[str, ...] = ()
 
 
 def summarise(
@@ -42,13 +47,15 @@ def summarise(
     reasons: list[str] = []
     before: list[tuple[Unit, ...]] = []
     after: list[tuple[Unit, ...]] = []
+    missing: set[str] = set()
 
     for change in changes:
-        bucket, reason, prior, planned = _classify(change, has_row)
+        bucket, reason, prior, planned, absent = _classify(change, has_row)
         buckets.append(bucket)
         reasons.append(reason)
         before.append(prior)
         after.append(planned)
+        missing.update(absent)
 
     counts = dict(Counter(buckets))
     if sum(counts.values()) != len(changes):
@@ -56,17 +63,30 @@ def summarise(
             "coverage lost a resource: "
             f"{sum(counts.values())} counted against {len(changes)} changed"
         )
-    return Summary(buckets=buckets, reasons=reasons, before=before, after=after, counts=counts)
+    return Summary(
+        buckets=buckets,
+        reasons=reasons,
+        before=before,
+        after=after,
+        counts=counts,
+        missing_keys=tuple(sorted(missing)),
+    )
 
 
 def _classify(
     change: ResourceChange, has_row: Callable[[str], bool]
-) -> tuple[Bucket, str, tuple[Unit, ...], tuple[Unit, ...]]:
+) -> tuple[Bucket, str, tuple[Unit, ...], tuple[Unit, ...], tuple[str, ...]]:
     if change.action in (Action.NO_CHANGE, Action.READ):
-        return Bucket.NO_CHANGE, "", (), ()
+        return Bucket.NO_CHANGE, "", (), (), ()
 
     if not is_priced(change.type):
-        return Bucket.NOT_PRICEABLE, not_priceable_reason(change.type, change.provider), (), ()
+        return (
+            Bucket.NOT_PRICEABLE,
+            not_priceable_reason(change.type, change.provider),
+            (),
+            (),
+            (),
+        )
 
     prior: tuple[Unit, ...] = ()
     planned: tuple[Unit, ...] = ()
@@ -85,13 +105,14 @@ def _classify(
 
     if unknown:
         # An attribute nobody knows yet is why no row could match, so saying the
-        # row is missing would name the wrong problem.
-        return Bucket.UNKNOWN_UNTIL_APPLY, unknown, prior, planned
+        # row is missing would name the wrong problem, and nothing was looked up
+        # to be missing.
+        return Bucket.UNKNOWN_UNTIL_APPLY, unknown, prior, planned, ()
 
-    missing = [unit.key for unit in prior + planned if not has_row(unit.key)]
+    missing = tuple(unit.key for unit in prior + planned if not has_row(unit.key))
     if missing:
-        return Bucket.NO_PRICE_ROW, missing[0], prior, planned
-    return Bucket.PRICED, "", prior, planned
+        return Bucket.NO_PRICE_ROW, missing[0], prior, planned, missing
+    return Bucket.PRICED, "", prior, planned, ()
 
 
 def is_sensitive(sensitive: Mapping[str, Any], path: str) -> bool:

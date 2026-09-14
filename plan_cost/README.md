@@ -55,6 +55,14 @@ PLAN COST  plan_cost/fixtures/estate/plan.json
 
   12 resource changes, 12 accounted for.
 
+  Missing price rows
+    google/disk/pd-balanced/us-central1
+  Fetch a catalogue and add them:
+    curl -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+      "https://cloudbilling.googleapis.com/v1/services/6F81-5844-456A/skus" > skus.json
+    .venv/bin/python -m plan_cost --refresh-prices skus.json --prices plan_cost/prices.toml
+  That rewrites the table in place, so copy it first if that matters.
+
 FINDINGS
 
   block   node_pool_without_autoscaling   google_container_node_pool.primary
@@ -155,6 +163,11 @@ buckets are asserted to sum to the number of changes in code, not only in a test
 | no price row | a priced type with known attributes and no rate in the table |
 | not priceable | usage-driven, no recurring cost, or not a cloud resource at all |
 | no change | a no-op or a read |
+
+A key with no rate comes with the command that adds it. Refusing to invent a figure is the
+right answer and it is not a useful one on its own: the shipped table holds four rows, so a
+plan the tool has never seen usually lands several resources here, and the reader needs a
+next step rather than a string.
 
 Nothing is ever priced at zero to make a total tidy. Point it at a plan of SaaS resources
 and it says so rather than implying a large change is free:
@@ -364,11 +377,12 @@ nothing here opens a socket.
   tests/unit/test_plan_rules.py tests/unit/test_plan_policy.py tests/unit/test_plan_gate.py \
   tests/unit/test_plan_refresh.py tests/unit/test_plan_budget.py \
   tests/unit/test_plan_budget_ambiguity.py tests/unit/test_plan_gcp.py tests/unit/test_plan_report_counts.py \
+  tests/unit/test_missing_price_instruction.py \
   tests/integration/test_plan_cost_cli.py tests/integration/test_plan_cost_demo.py \
   tests/contract/test_no_network.py
 ```
 
-168 tests, offline, no credentials.
+186 tests, offline, no credentials.
 
 ## Dependencies
 

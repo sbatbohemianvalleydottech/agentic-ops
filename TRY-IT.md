@@ -29,12 +29,13 @@ failing later, and naming a newer interpreter is the whole fix.
 
 ```bash
 .venv/bin/python -m pytest -q
-# 494 passed, 9 skipped in 0.64s
+# 525 passed, 9 skipped in 0.64s
 ```
 
 **The skips are deliberate and worth understanding.** Every one is a LiteLLM adapter test,
-and they skip because the provider library is an optional extra. The count is 8 rather than
-the 14 tests involved, because one file skips as a whole module and pytest reports that once:
+and they skip because the provider library is an optional extra. Eight lines are reported for
+the 15 tests involved, because one file of seven skips as a whole module and pytest reports
+that once:
 
 ```bash
 .venv/bin/python -m pytest -q -rs | grep SKIPPED
@@ -48,7 +49,7 @@ Install the extra and nothing skips:
 ```bash
 uv pip install -e ".[dev,providers]"
 .venv/bin/python -m pytest -q
-# 509 passed in 2.4s
+# 540 passed in 2.4s
 ```
 
 CI runs both arrangements, and the second job fails if any adapter test skips, so "it passed"

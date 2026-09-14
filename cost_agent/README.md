@@ -144,6 +144,23 @@ reader cannot tell them apart. Run both estates and compare: estate_a has nothin
 estate_b has nothing unassessable and nothing unmatched, and all four headings appear in
 both.
 
+**Nothing healthy is itself a finding, and the report says so.** When every assessed
+resource produces at least one finding, the run separated nothing, and that reads as
+thoroughness unless somebody names it. It has two explanations, an estate that is uniformly
+poor and thresholds loose enough to match anything, and no automated check can tell you
+which:
+
+```
+Healthy: none. All 14 assessed resources produced at least one finding, so
+this run separated nothing. Either the estate is uniformly poor, or the
+thresholds in thresholds.toml are loose enough to match everything. The
+ranking above is worth acting on once you know which.
+```
+
+Assessed means checked. Resources with no utilisation data were never checked against
+anything, so they are not in that count. Below three assessed resources the note does not
+appear, because "all of them" says nothing about thresholds at that size.
+
 **Retirement is a stated commitment, never an inference.** The inventory takes an optional
 `decommission_at` per resource, because the tool does not get to decide which of your
 platforms are obsolete.
@@ -237,11 +254,12 @@ Those are the lines every failure of the first live run happened in.
 .venv/bin/python -m pytest tests/unit/test_classify.py tests/unit/test_drivers.py \
   tests/unit/test_savings.py tests/unit/test_inputs.py tests/unit/test_thresholds.py \
   tests/unit/test_cost_report.py tests/integration/test_generalises.py \
-  tests/unit/test_savings_horizon_total.py tests/integration/test_confidence.py \
-  tests/integration/test_cost_report_consistency.py
+  tests/unit/test_savings_horizon_total.py tests/unit/test_saturation_note.py \
+  tests/integration/test_confidence.py \
+  tests/integration/test_cost_report_consistency.py tests/integration/test_free_path_exits_ok.py
 ```
 
-94 tests, offline, no credentials.
+107 tests, offline, no credentials.
 
 ## Dependencies
 
