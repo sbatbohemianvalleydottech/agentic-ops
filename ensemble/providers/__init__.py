@@ -19,6 +19,29 @@ _KEYISH = re.compile(
 )
 
 
+_ESCAPE = re.compile(r"\\u([0-9a-fA-F]{4})")
+
+
+def readable(text: str) -> str:
+    """Decode stray \\uXXXX sequences a model left in its own prose.
+
+    Models double-escape non-ASCII when quoting source material, so a document
+    containing a typographic apostrophe comes back carrying the six literal
+    characters rather than the one they encode. Our JSON parse is correct; the
+    model escaped the backslash too, and what survives is unreadable.
+
+    This is not editing what an assessor said. The escape and the character are
+    the same character written two ways, and the report is the whole of what a
+    human gets when a judgement halts. Changing a word would be editing; this
+    changes an encoding.
+
+    A document that genuinely contains the literal text of an escape sequence,
+    a review discussing escaping, would be altered. That is the trade, and it is
+    the rarer case by a wide margin.
+    """
+    return _ESCAPE.sub(lambda m: chr(int(m.group(1), 16)), text)
+
+
 def redact(message: str) -> str:
     return _KEYISH.sub("[REDACTED]", message)
 

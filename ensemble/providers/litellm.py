@@ -18,7 +18,7 @@ import litellm
 from litellm import completion, supports_response_schema
 
 from ..types import EvidenceBundle, JudgeVerdict, RaterVerdict, Rubric
-from . import Call, Usage, call_cost, redact
+from . import Call, Usage, call_cost, readable, redact
 
 # The vendor prints a banner and a support link on every error. Suppressed so a
 # halt report is legible. The error itself is not suppressed; it is carried
@@ -237,7 +237,7 @@ class LiteLLMProvider:
             verdict=RaterVerdict(
                 rater=model,
                 grade=str(payload["grade"]),
-                reasoning=str(payload.get("reasoning", "")),
+                reasoning=readable(str(payload.get("reasoning", ""))),
             ),
             usage=usage,
         )
@@ -276,7 +276,7 @@ class LiteLLMProvider:
             prompt_version=PROMPT_VERSION,
             verdict=JudgeVerdict(
                 justified=bool(payload["justified"]),
-                reasoning=str(payload.get("reasoning", "")),
+                reasoning=readable(str(payload.get("reasoning", ""))),
             ),
             usage=usage,
         )
