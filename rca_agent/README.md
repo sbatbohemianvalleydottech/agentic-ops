@@ -32,7 +32,7 @@ organisation learned nothing:
 Offline and instant, exit 0. These are the checks worth running *before* a debrief is
 scheduled, so they cost nothing and wait for nothing.
 
-That one command prints about 65 lines: a block per review for all eight fixtures, each
+That one command prints 77 lines: a block per review for all eight fixtures, each
 with its defects quoted from the document, and then the completion summary across the
 corpus. Every quoted block in this README is a slice of that output.
 
@@ -222,8 +222,9 @@ mkdir -p /tmp/one && cp rca_agent/fixtures/corpus/rca-hollow.json /tmp/one/
 ```
 
 Three dimensions, each through two independent assessors and a blind judge, so nine calls
-and a few cents for one review. The probe runs first anyway and aborts before the paid pass
-if a model is unreachable. Progress goes to stderr with a running cost, and the report
+and about 9 cents for one review: $0.0901 on 14 September 2026, of which the contested
+dimension was $0.0419. The probe runs first anyway and aborts before the paid pass if a
+model is unreachable. Progress goes to stderr with a running cost, and the report
 names the assessors and the judge.
 
 Watch `rca-hollow`. It is the case where the structural checks are silent and the judgement

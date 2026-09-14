@@ -48,13 +48,16 @@ with TemporaryDirectory() as tmp:
 ```
 
 ```
-0.023200000000000002
-0.0
+0.0232
+0
 3 lines
 ```
 
-That tail is not a typo, and it is the honest output: costs are summed as floats. See
-[What it does not do](#what-it-does-not-do).
+Exactly `0.0232`, not `0.023200000000000002`. LiteLLM returns a float and that is out of
+this package's hands, but it stops being one here: costs are rounded to ten places on the
+way in, which keeps a millionth of a cent and drops the binary noise, and totals are summed
+as `Decimal`. `cost_agent` has always used `Decimal` for the same money, and this now
+matches it rather than quietly differing.
 
 After a paid run, the committed agents write to `.ledger/calls.jsonl` and the same file
 answers the question directly:
@@ -80,9 +83,10 @@ What writes to it:
 
 - [`ensemble`](../ensemble/README.md) writes a line for every rater and judge call, failed
   calls included.
-- `python -m rca_agent.draft`, a demo, writes one line for its drafting call, with the cost
-  recorded as zero.
-- The probes that run before a paid pass, one minimal call per model, write nothing.
+- `python -m rca_agent.draft`, a demo, writes one line for its drafting call.
+- The probes that run before every paid pass, one minimal call per model, write one line
+  each under the decision id `preflight`, failed probes included. Lifetime probe spend is
+  `Ledger(DEFAULT_PATH).cost_of("preflight")`.
 
 ## What you can argue with
 
@@ -99,21 +103,19 @@ None. This package spends nothing. It records what other things spent.
 
 - **No aggregation, no dashboard, no retention policy.** It is a file, and `jq` or three
   lines of Python answer most questions of it.
-- **Two of the writers above fall short of the constitution.** The probes write nothing,
-  and the drafting demo records a zero rather than its real cost. Both are stated here
-  rather than left for a reader to discover.
-- **Costs are floats, and `cost_of` sums them as floats**, so three calls costing 0.0182,
-  0.0009 and 0.0041 total `0.023200000000000002`. `cost_agent` uses `Decimal` end to end
-  precisely to avoid that, and this package does not match it. At these magnitudes the
-  drift is far below a cent and nothing rounds a bill, but it is an inconsistency inside
-  one repository rather than a considered difference, and it is here rather than hidden.
+- **It cannot prove a call is missing.** Every writer in this repository is wired to it
+  and a test covers each, but nothing detects a future caller that forgets. The constitution
+  says every model call is metered; this file can only show what was.
 - **No concurrency guarantees** beyond append-mode writes from one process.
 
 ## Run its tests
 
 ```bash
-.venv/bin/python -m pytest tests/unit/test_ledger.py tests/contract/test_imports.py
+.venv/bin/python -m pytest tests/unit/test_ledger.py tests/unit/test_money_is_exact.py \
+  tests/contract/test_imports.py
 ```
+
+19 tests, offline, no credentials.
 
 `tests/contract/test_imports.py` is the one enforcing that this package imports nothing
 from an agent, so the dependency claim below is checked on every build rather than asserted.

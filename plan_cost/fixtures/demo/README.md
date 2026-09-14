@@ -1,7 +1,7 @@
 # Demo plans
 
-Seven plans and a synthetic price table, so you can drive the gate down every path it has
-without a Terraform binary, a cloud account or a credential.
+Eight plans and two price tables, so you can drive the gate down every path it has,
+including all four refusals, without a Terraform binary, a cloud account or a credential.
 
 **The rates in [`prices.demo.toml`](prices.demo.toml) are invented**, and deliberately round
 so the arithmetic can be checked in your head: e2-standard-4 at $0.20 an hour is $146.00 a
@@ -108,8 +108,28 @@ Exit 2 means the tool could not judge, and it never means expensive. The same pl
 # exit 0
 ```
 
-The other two ways to reach exit 2 are a plan whose `format_version` this tool has not been
-checked against, and a price table holding two rows for one key.
+The other three ways to reach exit 2 each ship a fixture, so none of them has to be taken
+on faith:
+
+```bash
+.venv/bin/python -m plan_cost --plan $D/unchecked-format-version.json --prices $P
+# exit 2
+# plan_cost: plan format version 2.0 has not been checked against this tool, which reads 1.x
+
+.venv/bin/python -m plan_cost --plan $D/staging-normal.json --prices $D/prices.duplicate-row.toml
+# exit 2
+# plan_cost: two rows carry the key google/machine-type/e2-standard-4/us-central1, so no
+# reader can tell which one a total used
+
+.venv/bin/python -m plan_cost --plan $D/staging-normal.json --prices $P \
+  --budget-json plan_cost/fixtures/budget/budgets.json
+# exit 2
+# plan_cost: the response holds 2 budgets (platform-monthly, data-platform-last-period);
+# name one with --budget-name rather than having this tool pick
+```
+
+None of them prints a dollar figure or a DECISION line. A refusal must not be mistakable
+for a verdict, and a test asserts that.
 
 ## These are tested, not just written down
 

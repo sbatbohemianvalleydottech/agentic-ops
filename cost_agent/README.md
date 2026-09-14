@@ -16,8 +16,17 @@ across compute, database, cache and CI are provisioned for peak and none autosca
 That is 78.6% of the bill, and it is one absent management practice rather than eight
 engineering problems."
 
-Both figures come from the `estate_a` fixture below, so a reader can reproduce either. The
-second is the one worth building a tool for, so a driver must explain more than one
+Both figures come from the `estate_a` fixture below, and neither needs the tool to check:
+
+```bash
+grep a-node-1 cost_agent/fixtures/estate_a/costs.csv                        # 19800.00 a month
+grep -A1 '"a-node-1"' cost_agent/fixtures/estate_a/inventory.json | tail -1  # utilisation_avg
+```
+
+$19,800.00 a month times the 12.1667 annualisation multiplier the report prints on every
+run is $240,900.66, which is the $240,901 above, and `utilisation_avg` is 0.38. The report
+itself aggregates by driver and never prints a per-resource total, so those two commands
+are the way to check it. The second figure is the one worth building a tool for, so a driver must explain more than one
 resource and name what is *missing* rather than what is expensive. Single-resource drivers
 are still reported, but flagged, because a driver that explains one line is a line item
 wearing a better name.
@@ -90,8 +99,11 @@ attributed to a driver, listed as contested, reported as unassessable, flagged a
 unmatched, or counted as healthy. A resource priced but not inventoried, and one
 inventoried but not priced, are both findings rather than noise. Missing utilisation makes
 a resource unassessable, never healthy: you cannot call something well-sized on absent
-evidence. Categories with nothing in them are not printed, so an estate with no unmatched
-resources shows no unmatched section.
+evidence. **Every category prints whether or not anything is in it**, an empty one saying
+`none`, because an absent heading and "checked, found nothing" are different claims and a
+reader cannot tell them apart. Run both estates and compare: estate_a has nothing healthy,
+estate_b has nothing unassessable and nothing unmatched, and all four headings appear in
+both.
 
 **Retirement is a stated commitment, never an inference.** The inventory takes an optional
 `decommission_at` per resource, because the tool does not get to decide which of your
@@ -179,10 +191,10 @@ first thing an audit asks, and spend lands in `.ledger/calls.jsonl`.
 .venv/bin/python -m pytest tests/unit/test_classify.py tests/unit/test_drivers.py \
   tests/unit/test_savings.py tests/unit/test_inputs.py tests/unit/test_thresholds.py \
   tests/unit/test_cost_report.py tests/integration/test_generalises.py \
-  tests/integration/test_confidence.py
+  tests/integration/test_confidence.py tests/integration/test_cost_report_consistency.py
 ```
 
-75 tests, offline, no credentials.
+88 tests, offline, no credentials.
 
 ## Dependencies
 

@@ -285,7 +285,15 @@ The budget API has no per-change threshold, so the tool derives one: the amount 
 lowest threshold percentage, which is the line the organisation itself chose to be told
 about. It shows that arithmetic so you can draw the line somewhere else, prints the
 budget's filter so you can see what it covers, and states plainly that it does not know
-current spend. Two budgets and no name is an error rather than a pick.
+current spend.
+
+Two budgets and no name is an error, exit 2, and so is naming a budget the response does
+not hold. Neither falls back. If it fell back to the policy file it would judge the plan
+against a threshold nobody asked for, and in these fixtures that threshold is the looser
+of the two, so the gate would have quietly relaxed at the moment somebody tightened it.
+A budget that is correctly identified but cannot yield a threshold, one carrying
+`lastPeriodAmount` and no rules, does still warn and fall back: that is a fact about the
+data rather than a mistake in the request.
 
 ## The paid path
 
@@ -302,8 +310,9 @@ nothing here opens a socket.
 - **The fixtures are hand-authored** against Terraform's documented JSON format. No
   `terraform` binary was run, because none is installed where this was built.
 - **Compute is priced by machine type.** Storage attached inside an instance or a node pool
-  is not in its figure, and the report says so on every run. A disk that appears as its own
-  resource is priced as one.
+  is not in its figure, and the report says so on every run that prices a monthly change. A
+  plan where nothing could be priced carries no figure, so it carries no caveat either. A
+  disk that appears as its own resource is priced as one.
 - **It judges one change in isolation.** Current spend needs the billing export, which is a
   different data source.
 - **Google Cloud only.** A second cloud is an extension point, not a claim.
@@ -316,11 +325,12 @@ nothing here opens a socket.
   tests/unit/test_plan_coverage.py tests/unit/test_plan_prices.py tests/unit/test_plan_pricing.py \
   tests/unit/test_plan_rules.py tests/unit/test_plan_policy.py tests/unit/test_plan_gate.py \
   tests/unit/test_plan_refresh.py tests/unit/test_plan_budget.py \
+  tests/unit/test_plan_budget_ambiguity.py tests/unit/test_plan_gcp.py \
   tests/integration/test_plan_cost_cli.py tests/integration/test_plan_cost_demo.py \
   tests/contract/test_no_network.py
 ```
 
-143 tests, offline, no credentials.
+162 tests, offline, no credentials.
 
 ## Dependencies
 

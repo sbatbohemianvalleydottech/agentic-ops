@@ -58,7 +58,7 @@ clone before it was written down.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/python -m pytest                    # 362 tests, ~1.7s
+.venv/bin/python -m pytest                    # 416 passed, 3 skipped, ~0.4s
 
 .venv/bin/python -m cost_agent \
   --costs cost_agent/fixtures/estate_a/costs.csv \
@@ -81,8 +81,12 @@ an estate.
 
 ## Credentials, for the paid paths only
 
+The default install deliberately leaves the provider library out, so **the paid paths need
+one more install**. Skip it and every paid command stops with `litellm is not installed`:
+
 ```bash
-cp .env.example .env      # then paste your keys into .env
+uv pip install -e ".[dev,providers]"   # adds litellm; the suite goes 416+3 -> 419
+cp .env.example .env                   # then paste your keys into .env
 ```
 
 `.env` is gitignored. An exported shell variable always beats it, and an empty value in the
@@ -90,18 +94,31 @@ file means "not set" rather than "set to nothing". This is local convenience, **
 secrets management strategy**.
 
 ```bash
-.venv/bin/python -m rca_agent ... --check    # one call per model, ~$0.0003, no work done
+.venv/bin/python -m rca_agent --corpus rca_agent/fixtures/corpus --check   # ~$0.0003
 ```
 
 `--check` reports what each configured model answered. It also runs automatically before
-any paid pass, so a dead model or an unfunded account costs about $0.0003 to discover
-instead of a full run.
+every paid pass, so a dead model or an unfunded account costs about $0.0003 to discover
+instead of a full run. Every probe is metered like any other call.
+
+Each paid command below is complete as written. Costs are what they charged on
+14 September 2026, not estimates:
 
 ```bash
-.venv/bin/python -m ensemble.demo                              # ~3 calls, a few cents
-.venv/bin/python -m cost_agent ... --confidence
-.venv/bin/python -m rca_agent  ... --judgement
+.venv/bin/python -m ensemble.demo                              # 3 calls + probes, ~$0.022
+
+.venv/bin/python -m cost_agent \
+  --costs cost_agent/fixtures/estate_a/costs.csv \
+  --inventory cost_agent/fixtures/estate_a/inventory.json \
+  --as-of 2026-09-01 --confidence                              # 12 calls, ~$0.13, ~85s
+
+mkdir -p /tmp/one && cp rca_agent/fixtures/corpus/rca-hollow.json /tmp/one/
+.venv/bin/python -m rca_agent --corpus /tmp/one \
+  --as-of 2026-09-01 --judgement                               # 9 calls, ~$0.09, ~60s
 ```
+
+`--judgement` assesses every review in the corpus, which is why that one points at a
+directory holding a single file rather than at all eight.
 
 Paid passes print progress to stderr with a running cost, so a run that is working and a
 run quietly burning money do not look identical. Redirect stdout and the report stays clean.
@@ -132,6 +149,9 @@ fix was to take a stated end-of-life date as input rather than infer one.
   workspace-scoped key, an unfunded account, and an empty value in `.env` that a library
   loaded behind us. Each cost a full run to find. That is why `--check` exists, and it is a
   fair description of how much of agentic infrastructure is credentials rather than models.
+  A fifth way to fail was found later by handing this document to someone with no context:
+  installing `.[dev]` and going straight to a paid command, with no provider library. The
+  credentials section above now names that install first.
 - **`plan_cost` has never called a live billing API.** Its catalogue and budget paths were
   built against the current documentation and tested against recorded responses.
 - **All fixtures are synthetic.** No real cloud, incident or employee data is present.

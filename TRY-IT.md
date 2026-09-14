@@ -18,16 +18,18 @@ No `uv`? Plain venv and pip work, on **Python 3.11 or newer**:
 python3.11 -m venv .venv && .venv/bin/pip install -e ".[dev]"
 ```
 
-On macOS, `python3` is usually the system 3.9 and will stop with
-`ERROR: Package 'agentic-ops' requires a different Python: 3.9.6 not in '>=3.11'`.
-That is the project refusing to install rather than failing later, and naming a newer
-interpreter is the whole fix.
+On macOS, `python3` is usually the system 3.9 and the install will stop. What it says
+depends on how old that Python's pip is. A current pip reports the real reason,
+`ERROR: Package 'agentic-ops' requires a different Python: 3.9.6 not in '>=3.11'`; the pip
+that ships with macOS 3.9.6 is too old for modern editable installs and complains about a
+missing `setup.py` instead. Either way the project has refused to install rather than
+failing later, and naming a newer interpreter is the whole fix.
 
 ## 2. Run the tests
 
 ```bash
 .venv/bin/python -m pytest -q
-# 357 passed, 3 skipped in 0.65s
+# 416 passed, 3 skipped in 0.36s
 ```
 
 **The three skips are deliberate and worth understanding.** They are the LiteLLM adapter
@@ -43,7 +45,7 @@ Install the extra and nothing skips:
 ```bash
 uv pip install -e ".[dev,providers]"
 .venv/bin/python -m pytest -q
-# 360 passed in 4.58s
+# 419 passed in 1.7s
 ```
 
 CI runs both arrangements, and the second job fails if any adapter test skips, so "it passed"
@@ -57,7 +59,7 @@ cannot quietly mean "it was not run".
   --inventory cost_agent/fixtures/estate_a/inventory.json --as-of 2026-09-01
 ```
 
-73 lines, exit 0. Structural cost drivers on a synthetic estate. Swap `estate_a` for
+75 lines, exit 0. Structural cost drivers on a synthetic estate. Swap `estate_a` for
 `estate_b` and the same code produces a different diagnosis, which is the check against a
 tool that has memorised its fixture.
 
@@ -176,8 +178,8 @@ mkdir -p /tmp/one && cp rca_agent/fixtures/corpus/rca-hollow.json /tmp/one/
 ```
 
 That is three dimensions, each through two independent raters and a blind judge, so nine
-calls and a few cents. It runs the same one-call preflight first and aborts before the paid
-pass if any model is unreachable. Where the raters disagree it halts and prints both
+calls and about 9 cents: $0.0901 on 14 September 2026. It runs the same one-call-per-model
+preflight first, meters it, and aborts before the paid pass if any model is unreachable. Where the raters disagree it halts and prints both
 arguments rather than averaging them, which on `rca-hollow` is the whole point of the
 repository.
 
