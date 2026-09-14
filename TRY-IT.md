@@ -1,6 +1,6 @@
 # Try it locally
 
-Every command below was run on 13 September 2026 in a fresh clone of commit `d32e3fe`, and
+Every command below was run on 14 September 2026 in a fresh clone of commit `54c71fb`, and
 the outputs quoted are what it printed. Nothing here needs a credential, a cloud account, a
 Terraform binary or a model call. The whole walkthrough is about two minutes.
 
