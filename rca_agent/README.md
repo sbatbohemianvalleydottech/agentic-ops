@@ -100,6 +100,44 @@ reviews is evidence the first attempt never landed.
 Which timeline moments are required, and the window follow-ups must be exported in, are
 config rather than code. See [What you can argue with](#what-you-can-argue-with).
 
+## Use it in CI
+
+Exit codes follow one contract, shared by everything runnable here and written down in
+[`ci/__init__.py`](../ci/__init__.py):
+
+```
+0  OK         ran, judged, nothing to stop for
+1  BLOCKED    ran, judged, and the answer is stop
+2  UNJUDGED   could not judge; this never means clean
+```
+
+**2 is the one that matters.** A bad input, an unreadable file or a format nobody has checked
+lands there rather than on 0, because a pipeline that reads "I could not tell" as "fine" is
+worse than no check. A shell step fails on both 1 and 2, which is what you want: a gate that
+could not run is not a gate that passed.
+
+**It reports by default and gates when asked.** Structural defects are objective and free to
+check, so a review missing a detection timestamp should not close:
+
+```yaml
+- name: Block a review with structural defects
+  run: python -m rca_agent --corpus reviews/ --fail-on-defects
+```
+
+Without `--fail-on-defects` it prints the same report and returns 0. Gating is opt-in because
+a tool that starts failing builds the day somebody upgrades it is a tool people pin and
+forget. The judgement pass is not wired in here on purpose: it costs money per review and
+belongs on a schedule or a label, not on every push.
+
+The repository runs these against its own fixtures on every push, in the `gates` job of
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml), asserting each exit code with
+[`tools/expect-exit.sh`](../tools/expect-exit.sh). Until that job existed this was a CI gate
+that had never run in CI.
+
+The contract itself is covered by `tests/unit/test_ci_contract.py` and
+`tests/integration/test_unreadable_input.py`, 18 tests that assert every tool answers
+input it cannot read with 2 and a message rather than a traceback.
+
 ## How it works
 
 **Two layers, and the split is the design.**
@@ -280,10 +318,11 @@ are from runs made before the rubric field existed, and they are why it exists.
 ```bash
 .venv/bin/python -m pytest tests/unit/test_structure.py tests/unit/test_rubric.py \
   tests/unit/test_completion.py tests/unit/test_rca_report.py tests/unit/test_rca_types.py \
-  tests/integration/test_corpus.py tests/integration/test_judgement.py
+  tests/integration/test_corpus.py tests/integration/test_judgement.py \
+  tests/integration/test_rca_gate.py
 ```
 
-55 tests, offline, no credentials. `tests/integration/test_corpus.py` is the one asserting
+61 tests, offline, no credentials. `tests/integration/test_corpus.py` is the one asserting
 that each fixture fails only the check it was built to fail.
 
 ## Dependencies

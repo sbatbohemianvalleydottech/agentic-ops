@@ -4,6 +4,7 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from ci import Exit
 from ensemble.env import load_env, setting
 from ledger import DEFAULT_PATH, Ledger
 
@@ -42,6 +43,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--completion", action="store_true", help="report action item completion"
     )
     parser.add_argument(
+        "--fail-on-defects",
+        action="store_true",
+        help=(
+            "exit 1 if any review has a structural defect, for use as a pipeline "
+            "gate. Off by default: reporting is the default because a tool that "
+            "starts failing builds on upgrade is a tool people pin and forget"
+        ),
+    )
+    parser.add_argument(
         "--judgement",
         action="store_true",
         help=(
@@ -76,21 +86,36 @@ def main(argv: list[str] | None = None) -> int:
         missing = _needs_credentials()
         if missing:
             print(f"--check needs {' and '.join(missing)}.", file=sys.stderr)
-            return 1
+            return Exit.UNJUDGED
         result = preflight(
             list(configured_models()),
             ledger=Ledger(DEFAULT_PATH),
             caller="rca_agent --check",
         )
         print(result.render())
-        return 0 if result.ok else 1
+        return Exit.OK if result.ok else Exit.UNJUDGED
 
     if not args.corpus:
         print("--corpus is required unless running --check.", file=sys.stderr)
-        return 2
+        return Exit.UNJUDGED
 
     rubric = load_rubric(args.rubric)
-    corpus = load_corpus(args.corpus)
+    try:
+        corpus = load_corpus(args.corpus)
+    except (OSError, ValueError) as exc:
+        print(f"rca_agent: could not read the corpus: {exc}", file=sys.stderr)
+        return Exit.UNJUDGED
+
+    if not corpus:
+        # Zero reviews is not a clean corpus, it is nothing to judge. This
+        # exited 0 with an empty report, so a typo in a path produced a green
+        # build, which is the shape of failure this repository objects to.
+        print(
+            f"rca_agent: no reviews found in {args.corpus}. An empty corpus is "
+            "nothing to judge, not a clean bill of health",
+            file=sys.stderr,
+        )
+        return Exit.UNJUDGED
 
     assessor = None
     models = None
@@ -98,7 +123,7 @@ def main(argv: list[str] | None = None) -> int:
         missing = _needs_credentials()
         if missing:
             print(f"--judgement needs {' and '.join(missing)}.", file=sys.stderr)
-            return 1
+            return Exit.UNJUDGED
         try:
             from ensemble.orchestrator import Rater
             from ensemble.preflight import preflight
@@ -107,7 +132,7 @@ def main(argv: list[str] | None = None) -> int:
             from .judgement import assess_judgement
         except ImportError:
             print('litellm not installed. pip install -e ".[providers]"', file=sys.stderr)
-            return 1
+            return Exit.UNJUDGED
 
         rater_a, rater_b, judge_model = configured_models()
 
@@ -120,7 +145,7 @@ def main(argv: list[str] | None = None) -> int:
         print(check.render(), file=sys.stderr)
         if not check.ok:
             print("Aborting before the run. Fix the above.", file=sys.stderr)
-            return 1
+            return Exit.UNJUDGED
 
         from ensemble.progress import StderrProgress
 
@@ -136,12 +161,34 @@ def main(argv: list[str] | None = None) -> int:
                 progress=progress,
             )
 
+    defective: list[str] = []
     for rca in corpus:
         review = check_structure(rca, rubric, args.as_of)
+        if review.defects:
+            defective.append(rca.rca_id)
         grades = assessor(rca) if assessor else None
         print(render_review(review, grades, models=models if assessor else None))
 
     if args.completion:
         print(render_completion(report_completion(corpus, rubric, args.as_of)))
 
-    return 0
+    if not args.fail_on_defects:
+        return Exit.OK
+
+    # The verdict goes to stderr so stdout stays the report. Only reviews that
+    # actually failed a check are named: rca-hollow passes every structural
+    # check and explains nothing, and naming it would tell a pipeline the free
+    # layer caught something it did not.
+    if defective:
+        print(
+            f"rca_agent: blocked. {len(defective)} of {len(corpus)} reviews carry a "
+            f"structural defect: {', '.join(defective)}",
+            file=sys.stderr,
+        )
+        return Exit.BLOCKED
+
+    print(
+        f"rca_agent: 0 of {len(corpus)} reviews carry a structural defect",
+        file=sys.stderr,
+    )
+    return Exit.OK

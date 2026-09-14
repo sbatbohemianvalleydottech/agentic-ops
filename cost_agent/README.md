@@ -60,6 +60,45 @@ Now run the second estate, which is the check that matters:
 Same code, different disease. If both produced the same drivers, the tool would have
 learned its test data.
 
+## Use it in CI
+
+Exit codes follow one contract, shared by everything runnable here and written down in
+[`ci/__init__.py`](../ci/__init__.py):
+
+```
+0  OK         ran, judged, nothing to stop for
+1  BLOCKED    ran, judged, and the answer is stop
+2  UNJUDGED   could not judge; this never means clean
+```
+
+**2 is the one that matters.** A bad input, an unreadable file or a format nobody has checked
+lands there rather than on 0, because a pipeline that reads "I could not tell" as "fine" is
+worse than no check. A shell step fails on both 1 and 2, which is what you want: a gate that
+could not run is not a gate that passed.
+
+**It is a reporter, not a gate.** It returns 0 or 2 and never 1. An estate costing money is
+not a build-breaking condition, and inventing a dollar threshold so it could return 1 would be
+dressing up an analysis as a gate:
+
+```yaml
+- name: Publish the cost driver analysis
+  run: |
+    python -m cost_agent --costs costs.csv --inventory inventory.json \
+      --as-of "$(date -I)" | tee analysis.txt
+```
+
+A schedule suits it better than a merge gate. The thing worth failing a build over is the
+change that creates the waste, and that is `plan_cost`.
+
+The repository runs these against its own fixtures on every push, in the `gates` job of
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml), asserting each exit code with
+[`tools/expect-exit.sh`](../tools/expect-exit.sh). Until that job existed this was a CI gate
+that had never run in CI.
+
+The contract itself is covered by `tests/unit/test_ci_contract.py` and
+`tests/integration/test_unreadable_input.py`, 18 tests that assert every tool answers
+input it cannot read with 2 and a message rather than a traceback.
+
 ## How it works
 
 **Attribution is single-owner, and the rule is printed so you can argue with the rule.**

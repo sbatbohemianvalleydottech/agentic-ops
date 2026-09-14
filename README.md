@@ -37,6 +37,7 @@ when not to reach for a model is the harder half of the claim.
 
 | Directory | What it does |
 |---|---|
+| **[`ci`](ci/__init__.py)** | One exit-code contract, shared by everything a pipeline can run |
 | **[`ensemble`](ensemble/README.md)** | The gate. A pure function over verdicts, plus the orchestrator and provider seam |
 | **[`ledger`](ledger/README.md)** | Append-only JSONL cost ledger. What any decision cost, after the fact |
 | **[`cost_agent`](cost_agent/README.md)** | Finds the structural reasons a cloud bill is what it is, rather than ranking line items by size |
@@ -48,8 +49,17 @@ when not to reach for a model is the harder half of the claim.
 discovers agent packages from the directory tree, so an agent added later is covered
 without anyone remembering.
 
-Every README follows the same eight sections, so the fifth one you read is navigable
-without re-learning where anything is.
+**Every artifact exits the same way**, so a pipeline treats them alike: 0 ran and nothing to
+stop for, 1 ran and the answer is stop, 2 could not judge. `plan_cost` and `rca_agent` gate;
+`cost_agent` reports and never returns 1, because an estate costing money is not a
+build-breaking condition. The `gates` job in CI runs all three on every push and asserts every
+code. Before it existed, `plan_cost` was a CI gate that had never run in CI, `rca_agent` found
+five defective reviews and exited 0, and `cost_agent` answered an unreadable file with a
+traceback and exit 1, which a pipeline would have read as a finding.
+
+Every package README follows the same eight sections, so the fifth one you read is navigable
+without re-learning where anything is. The three that a pipeline can run add a ninth, **Use it
+in CI**, which is identical in shape across all three because the exit-code contract is.
 
 ## Run it: 30 seconds, no credentials
 
@@ -58,7 +68,7 @@ clone before it was written down.
 
 ```bash
 uv venv && uv pip install -e ".[dev]"
-.venv/bin/python -m pytest                    # 416 passed, 3 skipped, ~0.4s
+.venv/bin/python -m pytest                    # 444 passed, 7 skipped, ~0.4s
 
 .venv/bin/python -m cost_agent \
   --costs cost_agent/fixtures/estate_a/costs.csv \
@@ -85,7 +95,7 @@ The default install deliberately leaves the provider library out, so **the paid 
 one more install**. Skip it and every paid command stops with `litellm is not installed`:
 
 ```bash
-uv pip install -e ".[dev,providers]"   # adds litellm; the suite goes 416+3 -> 419
+uv pip install -e ".[dev,providers]"   # adds litellm; the suite goes 444+7 -> 451
 cp .env.example .env                   # then paste your keys into .env
 ```
 
@@ -147,7 +157,7 @@ fix was to take a stated end-of-life date as input rather than infer one.
 
 **There is no golden set, and it is the next thing to build.** The gate halts when two raters
 disagree, and nothing anywhere measures whether the grade they agreed on was *right*. Every
-free path is covered by 419 tests. The paid paths, which are the ones that cost money and make
+free path is covered by 451 tests. The paid paths, which are the ones that cost money and make
 the judgements, are checked by running them and reading the output.
 
 That matters more than it sounds, because two independent runs of the same fixture on

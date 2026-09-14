@@ -29,7 +29,7 @@ failing later, and naming a newer interpreter is the whole fix.
 
 ```bash
 .venv/bin/python -m pytest -q
-# 416 passed, 3 skipped in 0.36s
+# 444 passed, 7 skipped in 0.38s
 ```
 
 **The three skips are deliberate and worth understanding.** They are the LiteLLM adapter
@@ -45,7 +45,7 @@ Install the extra and nothing skips:
 ```bash
 uv pip install -e ".[dev,providers]"
 .venv/bin/python -m pytest -q
-# 419 passed in 1.7s
+# 451 passed in 1.6s
 ```
 
 CI runs both arrangements, and the second job fails if any adapter test skips, so "it passed"

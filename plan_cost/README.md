@@ -103,6 +103,44 @@ with the command and expected exit code for each:
 Every exit code in that table is asserted in the test suite, so the demo fails the build
 rather than failing in front of an audience.
 
+## Use it in CI
+
+Exit codes follow one contract, shared by everything runnable here and written down in
+[`ci/__init__.py`](../ci/__init__.py):
+
+```
+0  OK         ran, judged, nothing to stop for
+1  BLOCKED    ran, judged, and the answer is stop
+2  UNJUDGED   could not judge; this never means clean
+```
+
+**2 is the one that matters.** A bad input, an unreadable file or a format nobody has checked
+lands there rather than on 0, because a pipeline that reads "I could not tell" as "fine" is
+worse than no check. A shell step fails on both 1 and 2, which is what you want: a gate that
+could not run is not a gate that passed.
+
+**It is a gate.** All three codes are reachable:
+
+```yaml
+- name: Price the plan before it merges
+  run: |
+    terraform show -json tfplan > plan.json
+    python -m plan_cost --plan plan.json --env staging
+```
+
+Staging blocks and production reports, so the same step is safe to add to both pipelines
+without standing in front of an urgent production change. Point `--budget-json` at a budget
+your organisation already owns and the threshold comes from there instead of the policy file.
+
+The repository runs these against its own fixtures on every push, in the `gates` job of
+[`.github/workflows/ci.yml`](../.github/workflows/ci.yml), asserting each exit code with
+[`tools/expect-exit.sh`](../tools/expect-exit.sh). Until that job existed this was a CI gate
+that had never run in CI.
+
+The contract itself is covered by `tests/unit/test_ci_contract.py` and
+`tests/integration/test_unreadable_input.py`, 18 tests that assert every tool answers
+input it cannot read with 2 and a message rather than a traceback.
+
 ## How it works
 
 **Every resource is accounted for.** Twelve changed, twelve placed. A cost check that prices four resources out of

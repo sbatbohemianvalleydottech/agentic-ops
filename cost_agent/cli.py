@@ -5,6 +5,7 @@ from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 
+from ci import Exit
 from ensemble.env import load_env, setting
 from ledger import DEFAULT_PATH, Ledger
 
@@ -52,12 +53,19 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
     models = None
-    analysis = analyse(
-        args.costs,
-        args.inventory,
-        thresholds_path=args.thresholds,
-        as_of=args.as_of,
-    )
+    try:
+        analysis = analyse(
+            args.costs,
+            args.inventory,
+            thresholds_path=args.thresholds,
+            as_of=args.as_of,
+        )
+    except (OSError, ValueError) as exc:
+        # Exit 2, not 1. A file this tool could not read is "could not judge",
+        # and returning 1 would tell a pipeline the analysis said stop. A
+        # traceback is not a message for an operator either.
+        print(f"cost_agent: could not read the inputs: {exc}", file=sys.stderr)
+        return Exit.UNJUDGED
 
     if args.confidence:
         missing = [
@@ -67,7 +75,7 @@ def main(argv: list[str] | None = None) -> int:
         ]
         if missing:
             print(f"--confidence needs {' and '.join(missing)}.", file=sys.stderr)
-            return 1
+            return Exit.UNJUDGED
 
         try:
             from ensemble.orchestrator import Rater
@@ -76,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
             from .confidence import rate_confidence
         except ImportError:
             print('litellm not installed. pip install -e ".[providers]"', file=sys.stderr)
-            return 1
+            return Exit.UNJUDGED
 
         from ensemble.preflight import preflight
         from ensemble.progress import StderrProgress
@@ -94,7 +102,7 @@ def main(argv: list[str] | None = None) -> int:
         print(check.render(), file=sys.stderr)
         if not check.ok:
             print("Aborting before the run. Fix the above.", file=sys.stderr)
-            return 1
+            return Exit.UNJUDGED
 
         provider = LiteLLMProvider()
         progress = StderrProgress()
@@ -118,4 +126,4 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     print(render_report(analysis, models=models))
-    return 0
+    return Exit.OK

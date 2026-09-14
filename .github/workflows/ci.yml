@@ -53,3 +53,81 @@ jobs:
 
       - name: Confirm no adapter test was silently skipped
         run: pytest tests/unit/test_providers.py -v --no-header -rs | grep -qv SKIPPED
+
+  # The artifacts, run as a pipeline would run them. Until this existed,
+  # plan_cost was a CI gate that had never once run in CI, and the only
+  # evidence it gated anything was that its tests said so.
+  #
+  # Every step asserts an exit code from the contract in ci/__init__.py:
+  # 0 ran and nothing to stop for, 1 ran and the answer is stop, 2 could not
+  # judge. No credential is needed for any of it.
+  gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install without providers
+        run: pip install -e ".[dev]"
+
+      # A gate that blocks. Eight nodes with no autoscaling block, in staging.
+      - name: plan_cost blocks a costly staging change
+        run: >
+          tools/expect-exit.sh 1
+          python -m plan_cost --plan plan_cost/fixtures/estate/plan.json --env staging
+
+      # The same plan in production reports instead, because a cost tool must
+      # not stand in front of an urgent production change.
+      - name: plan_cost reports the same change in production
+        run: >
+          tools/expect-exit.sh 0
+          python -m plan_cost --plan plan_cost/fixtures/estate/plan.json --env production
+
+      # Could not judge. This is the code that must never be mistaken for clean.
+      - name: plan_cost refuses a plan with no environment
+        run: >
+          tools/expect-exit.sh 2
+          python -m plan_cost
+          --plan plan_cost/fixtures/demo/incident-io-schedule-no-environment.json
+          --prices plan_cost/fixtures/demo/prices.demo.toml
+
+      - name: plan_cost refuses a plan format it has not been checked against
+        run: >
+          tools/expect-exit.sh 2
+          python -m plan_cost
+          --plan plan_cost/fixtures/demo/unchecked-format-version.json
+          --prices plan_cost/fixtures/demo/prices.demo.toml
+
+      # Five of the eight fixtures carry a structural defect.
+      - name: rca_agent blocks a corpus with structural defects
+        run: >
+          tools/expect-exit.sh 1
+          python -m rca_agent --corpus rca_agent/fixtures/corpus
+          --as-of 2026-09-01 --fail-on-defects
+
+      # The same corpus without the flag reports and passes. Gating is opt-in.
+      - name: rca_agent reports without the gate flag
+        run: >
+          tools/expect-exit.sh 0
+          python -m rca_agent --corpus rca_agent/fixtures/corpus --as-of 2026-09-01
+
+      # A reporter, not a gate. It never returns 1, and forcing it to would be
+      # dressing up an analysis as a build-breaking condition.
+      - name: cost_agent reports and does not gate
+        run: >
+          tools/expect-exit.sh 0
+          python -m cost_agent
+          --costs cost_agent/fixtures/estate_a/costs.csv
+          --inventory cost_agent/fixtures/estate_a/inventory.json
+          --as-of 2026-09-01
+
+      - name: cost_agent refuses input it cannot read
+        run: >
+          tools/expect-exit.sh 2
+          python -m cost_agent
+          --costs cost_agent/fixtures/estate_a/costs.csv
+          --inventory does-not-exist.json
+          --as-of 2026-09-01

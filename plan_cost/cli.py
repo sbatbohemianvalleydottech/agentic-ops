@@ -17,6 +17,8 @@ import sys
 from datetime import date
 from pathlib import Path
 
+from ci import Exit
+
 from .budget import BudgetError, BudgetSelectionError, threshold_from
 from .gate import decide
 from .plan import PlanError, load_plan
@@ -77,7 +79,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.plan is None:
         print("plan_cost: --plan is required", file=sys.stderr)
-        return 2
+        return Exit.UNJUDGED
 
     try:
         plan = load_plan(args.plan)
@@ -89,11 +91,11 @@ def main(argv: list[str] | None = None) -> int:
         action = action_for(policy, environment)
     except (PlanError, PriceError, PolicyError) as exc:
         print(f"plan_cost: {exc}", file=sys.stderr)
-        return 2
+        return Exit.UNJUDGED
 
     threshold, threshold_note = _threshold(args, policy)
     if threshold is None:
-        return 2
+        return Exit.UNJUDGED
 
     priced = price_plan(plan.changes, table)
     findings = findings_for(plan.changes, policy.severities)
@@ -119,7 +121,7 @@ def main(argv: list[str] | None = None) -> int:
         )
     )
     _warn_if_stale(table, policy)
-    return 1 if decision.blocked else 0
+    return Exit.BLOCKED if decision.blocked else Exit.OK
 
 
 def _threshold(args: argparse.Namespace, policy: Policy):
@@ -162,15 +164,15 @@ def _refresh(args: argparse.Namespace) -> int:
             f"plan_cost: {args.refresh} could not be read as a catalogue response: {exc}",
             file=sys.stderr,
         )
-        return 2
+        return Exit.UNJUDGED
     except RefreshError as exc:
         print(f"plan_cost: {exc}", file=sys.stderr)
-        return 2
+        return Exit.UNJUDGED
 
     print(f"PRICE REFRESH  {args.prices}")
     print()
     print(report.as_text())
-    return 0
+    return Exit.OK
 
 
 def _warn_if_stale(table: PriceTable, policy: Policy) -> None:
