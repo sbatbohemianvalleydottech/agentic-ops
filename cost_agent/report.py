@@ -4,6 +4,7 @@ Empty sections still render. "Checked, found nothing" and "never checked" are
 different claims, and a reader cannot tell them apart from an absent heading.
 """
 
+import textwrap
 from decimal import Decimal
 
 from ensemble.explain import wrap
@@ -204,6 +205,44 @@ def render_report(
             f"Healthy: {_count(len(analysis.healthy), 'resource')} produced no finding."
         )
     else:
-        lines.append("Healthy: none. Every resource produced at least one finding.")
+        lines += _saturation(analysis)
 
     return "\n".join(lines)
+
+
+# Below this, "all of them" says nothing about thresholds: three resources are
+# too few for the proportion to be evidence of anything.
+MIN_POPULATION = 3
+
+
+def _assessed(analysis) -> int:
+    """How many resources were actually checked against a threshold.
+
+    Not the resource count. Unassessable resources were never checked at all, so
+    counting them would inflate the claim, and unmatched resources are present in
+    one input only, so nothing could be checked about them either.
+    """
+    unassessable = {finding.resource_id for finding in analysis.unassessable}
+    flagged = {f.resource_id for driver in analysis.drivers for f in driver.findings}
+    return len((flagged | set(analysis.healthy)) - unassessable)
+
+
+def _saturation(analysis) -> list[str]:
+    """What it means when nothing at all came back healthy.
+
+    A reader takes an all-flagged estate for thoroughness. It is equally
+    consistent with thresholds loose enough to match anything, and a ranking
+    built from those separates nothing. The tool holds both numbers and cannot
+    tell which explanation is right, so it states the ambiguity rather than
+    resolving it.
+    """
+    assessed = _assessed(analysis)
+    if assessed < MIN_POPULATION:
+        return ["Healthy: none. Every resource produced at least one finding."]
+    return textwrap.wrap(
+        f"Healthy: none. All {assessed} assessed resources produced at least one "
+        "finding, so this run separated nothing. Either the estate is uniformly "
+        "poor, or the thresholds in thresholds.toml are loose enough to match "
+        "everything. The ranking above is worth acting on once you know which.",
+        width=78,
+    )
