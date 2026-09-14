@@ -92,6 +92,17 @@ def _priced(priced: PricedPlan) -> list[str]:
     return lines + [""]
 
 
+def _coverage_line(total: int, counted: int) -> str:
+    """"1 resource change", not "1 resource changes".
+
+    Real plans are frequently a single resource; both shipped fixtures have
+    twelve, so this read wrong on the first real plan and on none of the tests.
+    A report whose job is arithmetic should be able to count in English.
+    """
+    noun = "resource change" if total == 1 else "resource changes"
+    return f"  {total} {noun}, {counted} accounted for."
+
+
 def _not_counted(coverage: Summary) -> list[str]:
     lines = []
     for bucket in UNCOUNTED:
@@ -105,7 +116,7 @@ def _not_counted(coverage: Summary) -> list[str]:
         lines = ["  Not counted", *lines, ""]
     total = len(coverage.buckets)
     counted = sum(coverage.counts.values())
-    return lines + [f"  {total} resource changes, {counted} accounted for.", ""]
+    return lines + [_coverage_line(total, counted), ""]
 
 
 def _why(coverage: Summary, bucket: Bucket) -> str:
